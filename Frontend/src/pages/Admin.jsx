@@ -15,6 +15,7 @@ export default function Admin() {
             return;
         }
 
+
         try {
             const user = JSON.parse(userStr);
             if (user.role !== 'admin') {
@@ -23,6 +24,7 @@ export default function Admin() {
             } else {
                 setAuthorized(true); // Allow rendering only if Check Passed
             }
+
         } catch (e) {
             navigate('/signin');
         }
@@ -84,6 +86,7 @@ export default function Admin() {
 function AdminRooms() {
     const [rooms, setRooms] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    
     const [isEditing, setIsEditing] = useState(false); // Track edit mode
     const [formData, setFormData] = useState({
         room_id: null, room_number: '', room_type: '', price_per_night: '', status: 'available', description: ''
