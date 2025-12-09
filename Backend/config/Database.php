@@ -1,6 +1,6 @@
 <?php
 class Database {
-    // DB Params - Default XAMPP settings
+    // DB Paarams
     private $host = 'localhost';
     private $db_name = 'hotel_management';
     private $username = 'root';
