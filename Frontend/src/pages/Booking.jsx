@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Booking.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { bookingService } from "../services/api";
+import { bookingService, roomService } from "../services/api";
 
 export default function BookingPage() {
     const navigate = useNavigate();
@@ -73,6 +73,22 @@ export default function BookingPage() {
         }
 
         try {
+            // First, check if the room is available
+            const roomData = await roomService.getSingle(roomIdToUse);
+
+            if (!roomData.data) {
+                setError("Room not found.");
+                return;
+            }
+
+            const roomStatus = roomData.data.status?.toLowerCase();
+
+            if (roomStatus !== 'available') {
+                setError(`This room is currently ${roomStatus}. Please select another room.`);
+                return;
+            }
+
+            // Proceed with booking if room is available
             const bookingData = {
                 user_id: user.id,
                 room_id: roomIdToUse,
@@ -84,7 +100,7 @@ export default function BookingPage() {
 
             if (data.message === "Booking Created") {
                 alert("Booking Successful!");
-                navigate("/"); // Redirect to home or user profile
+                navigate("/my-bookings"); // Redirect to My Bookings page
             } else {
                 setError(data.message || "Booking failed.");
             }
