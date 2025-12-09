@@ -5,17 +5,40 @@ import { ArrowRight, Star, Wifi, Coffee, MapPin } from "lucide-react";
 import Button from "../components/ui/Button";
 import Section from "../components/ui/Section";
 import RoomCard from "../components/RoomCard";
-import { roomsData } from "../data/rooms";
+import { roomService } from "../services/api";
 
 // Import slider images
 import slider1 from "../assets/images/slider-1.jpg";
 import slider2 from "../assets/images/slider-2.jpg";
 import slider3 from "../assets/images/slider-3.jpg";
 
+// Import room images for mapping
+import deluxeImg from '../assets/images/deluxe.jpg';
+import singleImg from '../assets/images/single.jpg';
+import familyImg from '../assets/images/family.jpg';
+import kingImg from '../assets/images/kingsize.jpg';
+import doubleImg from '../assets/images/double.jpg';
+import vipImg from '../assets/images/vip.jpg';
+
 const heroImages = [slider1, slider2, slider3];
+
+const getImageForRoomType = (type) => {
+  if (!type) return singleImg;
+  const lowerType = type.toLowerCase();
+  if (lowerType.includes("deluxe")) return deluxeImg;
+  if (lowerType.includes("single")) return singleImg;
+  if (lowerType.includes("family")) return familyImg;
+  if (lowerType.includes("king")) return kingImg;
+  if (lowerType.includes("double")) return doubleImg;
+  if (lowerType.includes("vip") || lowerType.includes("luxury")) return vipImg;
+  return singleImg;
+};
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -24,7 +47,30 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  const featuredRooms = roomsData.slice(0, 3);
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const data = await roomService.getAll();
+        if (data.data) {
+          const mappedRooms = data.data.slice(0, 3).map(r => ({
+            id: r.room_id,
+            name: r.room_type || r.room_number,
+            price: r.price_per_night,
+            image: getImageForRoomType(r.room_type),
+            short_description: r.description,
+            status: r.status || 'available'
+          }));
+          setRooms(mappedRooms);
+        }
+      } catch (err) {
+        console.error("Error fetching rooms:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
 
   return (
     <main className="bg-background min-h-screen">
@@ -116,11 +162,15 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredRooms.map(room => (
-            <RoomCard key={room.id} room={room} /> // Passing user={null} implicitly
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center">Loading rooms...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {rooms.map(room => (
+              <RoomCard key={room.id} room={room} user={user} />
+            ))}
+          </div>
+        )}
 
         <div className="mt-12 text-center md:hidden">
           <Link to="/rooms">

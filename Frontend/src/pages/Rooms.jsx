@@ -11,6 +11,7 @@ import familyImg from '../assets/images/family.jpg';
 import kingImg from '../assets/images/kingsize.jpg';
 import doubleImg from '../assets/images/double.jpg';
 import vipImg from '../assets/images/vip.jpg';
+import placeholderImg from '../assets/images/placeholder.png';
 
 const getImageForRoomType = (type) => {
     if (!type) return singleImg;
@@ -40,7 +41,8 @@ export default function Rooms() {
                         name: r.room_type || r.room_number,
                         price: r.price_per_night,
                         image: getImageForRoomType(r.room_type),
-                        short_description: r.description
+                        short_description: r.description,
+                        status: r.status || 'available' // Include status field
                     }));
                     setRooms(mappedRooms);
                 } else {
