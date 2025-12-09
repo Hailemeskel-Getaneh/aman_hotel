@@ -1,0 +1,79 @@
+/* ===== Sign In Page ===== */
+
+.signin-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 70px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.signin-container h2 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #ff6b6b;
+}
+
+/* Form */
+.signin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Inputs */
+.signin-form input {
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.signin-form input:focus {
+    border-color: #ff6b6b;
+    outline: none;
+    box-shadow: 0 0 4px rgba(255, 107, 107, 0.4);
+}
+
+/* Submit button */
+.signin-form button {
+    padding: 12px;
+    background: #ff6b6b;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.signin-form button:hover {
+    background: #e25454;
+}
+
+/* Bottom text */
+.signin-container p {
+    margin-top: 15px;
+}
+
+.signin-container a {
+    color: #ff6b6b;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.signin-container a:hover {
+    color: #e25454;
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+    .signin-container {
+        margin: 40px 15px;
+        padding: 20px;
+    }
+}
