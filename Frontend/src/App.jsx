@@ -14,6 +14,7 @@ import SignIn from "./pages/SignIn";
 import Register from "./pages/Register";
 import Events from "./pages/Event.jsx";
 import Admin from "./pages/Admin.jsx";
+import MyBookings from "./pages/MyBookings.jsx";
 
 // Layout component to handle conditional rendering of Navbar/Footer
 function Layout({ children }) {
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/rooms" element={<Rooms />} />
 
           <Route path="/booking" element={<Booking />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signin" element={<SignIn />} />

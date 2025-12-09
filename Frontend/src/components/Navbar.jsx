@@ -10,6 +10,19 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
 
+    // Check if user is logged in
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        // Check localStorage for user on mount and location change
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        } else {
+            setUser(null);
+        }
+    }, [location]);
+
     useEffect(() => {
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
@@ -30,6 +43,12 @@ export default function Navbar() {
         { name: "About", path: "/about" },
         { name: "Contact", path: "/contact" },
     ];
+
+    const handleSignOut = () => {
+        localStorage.removeItem("user");
+        setUser(null);
+        window.location.href = "/";
+    };
 
     return (
         <header
@@ -70,11 +89,35 @@ export default function Navbar() {
                             {link.name}
                         </NavLink>
                     ))}
-                    <Link to="/signin">
-                        <Button variant="primary" size="sm">
-                            Sign In
-                        </Button>
-                    </Link>
+                    {user && (
+                        <NavLink
+                            to="/my-bookings"
+                            className={({ isActive }) =>
+                                cn(
+                                    "text-sm font-medium transition-colors hover:text-secondary",
+                                    isActive
+                                        ? "text-secondary font-semibold"
+                                        : "text-primary-700"
+                                )
+                            }
+                        >
+                            My Bookings
+                        </NavLink>
+                    )}
+                    {user ? (
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm text-primary-700">Hi, {user.name}</span>
+                            <Button variant="outline" size="sm" onClick={handleSignOut}>
+                                Sign Out
+                            </Button>
+                        </div>
+                    ) : (
+                        <Link to="/signin">
+                            <Button variant="primary" size="sm">
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
                 </nav>
 
                 {/* Mobile Menu Button */}
@@ -113,10 +156,34 @@ export default function Navbar() {
                                     {link.name}
                                 </NavLink>
                             ))}
+                            {user && (
+                                <NavLink
+                                    to="/my-bookings"
+                                    className={({ isActive }) =>
+                                        cn(
+                                            "text-base font-medium py-2 px-2 rounded-md transition-colors",
+                                            isActive
+                                                ? "bg-primary-50 text-primary-900"
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-primary-900"
+                                        )
+                                    }
+                                >
+                                    My Bookings
+                                </NavLink>
+                            )}
                             <div className="pt-2 border-t border-gray-100">
-                                <Link to="/signin" className="w-full">
-                                    <Button className="w-full">Sign In</Button>
-                                </Link>
+                                {user ? (
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-gray-600 px-2">Hi, {user.name}</p>
+                                        <Button className="w-full" variant="outline" onClick={handleSignOut}>
+                                            Sign Out
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Link to="/signin" className="w-full">
+                                        <Button className="w-full">Sign In</Button>
+                                    </Link>
+                                )}
                             </div>
                         </nav>
                     </motion.div>
