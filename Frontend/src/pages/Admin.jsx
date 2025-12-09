@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Admin.css';
-import { roomService, bookingService, contactService, eventService } from '../services/api';
+import { roomService, roomTypeService, bookingService, contactService, eventService } from '../services/api';
 
 export default function Admin() {
     const [activeTab, setActiveTab] = useState('rooms');
@@ -45,6 +45,9 @@ export default function Admin() {
             <aside className="admin-sidebar">
                 <h2>Admin Panel</h2>
                 <ul className="sidebar-menu">
+                    <li className={activeTab === 'room-types' ? 'active' : ''} onClick={() => setActiveTab('room-types')}>
+                        Room Types
+                    </li>
                     <li className={activeTab === 'rooms' ? 'active' : ''} onClick={() => setActiveTab('rooms')}>
                         Manage Rooms
                     </li>
@@ -70,6 +73,7 @@ export default function Admin() {
                 </header>
 
                 <div className="content-body">
+                    {activeTab === 'room-types' && <AdminRoomTypes />}
                     {activeTab === 'rooms' && <AdminRooms />}
                     {activeTab === 'bookings' && <AdminBookings />}
                     {activeTab === 'messages' && <AdminMessages />}
@@ -82,24 +86,167 @@ export default function Admin() {
 
 // --- Sub Components ---
 
-// 1. Manage Rooms
+// 1. Manage Room Types
+function AdminRoomTypes() {
+    const [roomTypes, setRoomTypes] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        type_id: null, type_name: '', description: '', price_per_night: '',
+        image_url: '', amenities: '', max_occupancy: 2
+    });
+
+    useEffect(() => {
+        loadRoomTypes();
+    }, []);
+
+    const loadRoomTypes = async () => {
+        try {
+            const data = await roomTypeService.getAll();
+            if (data.data) setRoomTypes(data.data);
+        } catch (err) { console.error(err); }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Delete this room type?")) return;
+        try {
+            const result = await roomTypeService.delete(id);
+            if (result.error) {
+                alert(result.message);
+            } else {
+                loadRoomTypes();
+            }
+        } catch (err) {
+            alert("Error deleting room type");
+        }
+    };
+
+    const handleEdit = (type) => {
+        setFormData(type);
+        setIsEditing(true);
+        setShowModal(true);
+    };
+
+    const handleAdd = () => {
+        setFormData({
+            type_id: null, type_name: '', description: '', price_per_night: '',
+            image_url: '', amenities: '', max_occupancy: 2
+        });
+        setIsEditing(false);
+        setShowModal(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (isEditing) {
+            await roomTypeService.update(formData);
+        } else {
+            await roomTypeService.create(formData);
+        }
+        setShowModal(false);
+        loadRoomTypes();
+    };
+
+    return (
+        <div>
+            <button className="btn-primary" style={{ marginBottom: '1rem' }} onClick={handleAdd}>
+                + Add New Room Type
+            </button>
+            <div className="table-container">
+                <table className="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Type Name</th>
+                            <th>Price/Night</th>
+                            <th>Max Occupancy</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {roomTypes.map(type => (
+                            <tr key={type.type_id}>
+                                <td>{type.type_name}</td>
+                                <td>${type.price_per_night}</td>
+                                <td>{type.max_occupancy} guests</td>
+                                <td>
+                                    <button className="action-btn btn-edit" onClick={() => handleEdit(type)}>Edit</button>
+                                    <button className="action-btn btn-delete" onClick={() => handleDelete(type.type_id)}>Delete</button>
+                                </td>
+                            </tr>
+                        ))}
+                        {roomTypes.length === 0 && <tr><td colSpan="4">No room types found.</td></tr>}
+                    </tbody>
+                </table>
+            </div>
+
+            {showModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>{isEditing ? 'Edit Room Type' : 'Add New Room Type'}</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Type Name</label>
+                                <input required value={formData.type_name} onChange={e => setFormData({ ...formData, type_name: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Price per Night</label>
+                                <input type="number" step="0.01" required value={formData.price_per_night} onChange={e => setFormData({ ...formData, price_per_night: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Max Occupancy</label>
+                                <input type="number" required value={formData.max_occupancy} onChange={e => setFormData({ ...formData, max_occupancy: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Image URL (optional)</label>
+                                <input value={formData.image_url || ''} onChange={e => setFormData({ ...formData, image_url: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Amenities (optional)</label>
+                                <textarea value={formData.amenities || ''} onChange={e => setFormData({ ...formData, amenities: e.target.value })}></textarea>
+                            </div>
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea value={formData.description || ''} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                <button type="button" onClick={() => setShowModal(false)}>Cancel</button>
+                                <button type="submit" className="btn-primary">{isEditing ? 'Update' : 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// 2. Manage Rooms
 function AdminRooms() {
     const [rooms, setRooms] = useState([]);
+    const [roomTypes, setRoomTypes] = useState([]);
     const [showModal, setShowModal] = useState(false);
     
-    const [isEditing, setIsEditing] = useState(false); // Track edit mode
+    const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
-        room_id: null, room_number: '', room_type: '', price_per_night: '', status: 'available', description: ''
+        room_id: null, room_number: '', room_type_id: '', status: 'available'
     });
 
     useEffect(() => {
         loadRooms();
+        loadRoomTypes();
     }, []);
 
     const loadRooms = async () => {
         try {
             const data = await roomService.getAll();
             if (data.data) setRooms(data.data);
+        } catch (err) { console.error(err); }
+    };
+
+    const loadRoomTypes = async () => {
+        try {
+            const data = await roomTypeService.getAll();
+            if (data.data) setRoomTypes(data.data);
         } catch (err) { console.error(err); }
     };
 
@@ -116,7 +263,7 @@ function AdminRooms() {
     };
 
     const handleAdd = () => {
-        setFormData({ room_id: null, room_number: '', room_type: '', price_per_night: '', status: 'available', description: '' });
+        setFormData({ room_id: null, room_number: '', room_type_id: '', status: 'available' });
         setIsEditing(false);
         setShowModal(true);
     };
@@ -180,12 +327,13 @@ function AdminRooms() {
                                 <input required value={formData.room_number} onChange={e => setFormData({ ...formData, room_number: e.target.value })} />
                             </div>
                             <div className="form-group">
-                                <label>Type</label>
-                                <input required value={formData.room_type} onChange={e => setFormData({ ...formData, room_type: e.target.value })} />
-                            </div>
-                            <div className="form-group">
-                                <label>Price</label>
-                                <input type="number" required value={formData.price_per_night} onChange={e => setFormData({ ...formData, price_per_night: e.target.value })} />
+                                <label>Room Type</label>
+                                <select required value={formData.room_type_id} onChange={e => setFormData({ ...formData, room_type_id: e.target.value })}>
+                                    <option value="">Select a room type</option>
+                                    {roomTypes.map(type => (
+                                        <option key={type.type_id} value={type.type_id}>{type.type_name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="form-group">
                                 <label>Status</label>
@@ -194,10 +342,6 @@ function AdminRooms() {
                                     <option value="booked">Booked</option>
                                     <option value="maintenance">Maintenance</option>
                                 </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Description</label>
-                                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                 <button type="button" onClick={() => setShowModal(false)}>Cancel</button>
@@ -211,7 +355,7 @@ function AdminRooms() {
     );
 }
 
-// 2. Manage Bookings
+// 3. Manage Bookings
 function AdminBookings() {
     const [bookings, setBookings] = useState([]);
 

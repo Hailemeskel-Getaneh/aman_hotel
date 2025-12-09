@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import RoomCard from "../components/RoomCard";
 import Section from "../components/ui/Section";
-import { roomService } from "../services/api";
+import { roomTypeService } from "../services/api";
 
 // Import images
 import deluxeImg from '../assets/images/deluxe.jpg';
@@ -21,42 +21,46 @@ const getImageForRoomType = (type) => {
     if (lowerType.includes("family")) return familyImg;
     if (lowerType.includes("king")) return kingImg;
     if (lowerType.includes("double")) return doubleImg;
-    if (lowerType.includes("vip") || lowerType.includes("luxury")) return vipImg;
+    if (lowerType.includes("vip") || lowerType.includes("luxury") || lowerType.includes("suite")) return vipImg;
     return singleImg;
 };
 
 export default function Rooms() {
     const user = JSON.parse(localStorage.getItem("user"));
-    const [rooms, setRooms] = useState([]);
+    const [roomTypes, setRoomTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchRooms = async () => {
+        const fetchRoomTypes = async () => {
             try {
-                const data = await roomService.getAll();
+                const data = await roomTypeService.getAvailability();
                 if (data.data) {
-                    const mappedRooms = data.data.map(r => ({
-                        id: r.room_id,
-                        name: r.room_type || r.room_number,
-                        price: r.price_per_night,
-                        image: getImageForRoomType(r.room_type),
-                        short_description: r.description,
-                        status: r.status || 'available' // Include status field
+                    const mappedRoomTypes = data.data.map(rt => ({
+                        id: rt.type_id,
+                        name: rt.type_name,
+                        price: rt.price_per_night,
+                        image: rt.image_url || getImageForRoomType(rt.type_name),
+                        short_description: rt.description,
+                        status: rt.status, // 'available' or 'unavailable'
+                        available_rooms: rt.available_rooms,
+                        total_rooms: rt.total_rooms,
+                        amenities: rt.amenities,
+                        max_occupancy: rt.max_occupancy
                     }));
-                    setRooms(mappedRooms);
+                    setRoomTypes(mappedRoomTypes);
                 } else {
-                    setRooms([]);
+                    setRoomTypes([]);
                 }
             } catch (err) {
-                console.error("Error fetching rooms:", err);
-                setError("Failed to load rooms.");
+                console.error("Error fetching room types:", err);
+                setError("Failed to load room types.");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchRooms();
+        fetchRoomTypes();
     }, []);
 
     return (
@@ -80,8 +84,8 @@ export default function Rooms() {
 
                 {!loading && !error && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {rooms.map((room) => (
-                            <RoomCard key={room.id} room={room} user={user} />
+                        {roomTypes.map((roomType) => (
+                            <RoomCard key={roomType.id} room={roomType} user={user} />
                         ))}
                     </div>
                 )}

@@ -25,29 +25,40 @@ if(!isset($data->room_id)) {
 
 $room_id = $data->room_id;
 $room_number = isset($data->room_number) ? $data->room_number : null;
-$room_type = isset($data->room_type) ? $data->room_type : null;
-$price_per_night = isset($data->price_per_night) ? $data->price_per_night : null;
+$room_type_id = isset($data->room_type_id) ? $data->room_type_id : null;
 $status = isset($data->status) ? $data->status : null;
-$description = isset($data->description) ? $data->description : null;
 
-// Dynamic update query
-$query = "UPDATE rooms SET ";
-$params = [];
+// Build dynamic update query
+$updates = array();
+$params = array(':room_id' => $room_id);
 
-if($room_number) { $query .= "room_number = :room_number, "; $params[':room_number'] = $room_number; }
-if($room_type) { $query .= "room_type = :room_type, "; $params[':room_type'] = $room_type; }
-if($price_per_night) { $query .= "price_per_night = :price_per_night, "; $params[':price_per_night'] = $price_per_night; }
-if($status) { $query .= "status = :status, "; $params[':status'] = $status; }
-if($description) { $query .= "description = :description, "; $params[':description'] = $description; }
+if($room_number !== null) {
+    $updates[] = 'room_number = :room_number';
+    $params[':room_number'] = $room_number;
+}
+if($room_type_id !== null) {
+    $updates[] = 'room_type_id = :room_type_id';
+    $params[':room_type_id'] = $room_type_id;
+}
+if($status !== null) {
+    $updates[] = 'status = :status';
+    $params[':status'] = $status;
+}
 
-// Remove trailing comma
-$query = rtrim($query, ", ");
-$query .= " WHERE room_id = :room_id";
-$params[':room_id'] = $room_id;
+if(empty($updates)) {
+    echo json_encode(array('message' => 'No fields to update'));
+    exit();
+}
+
+$query = 'UPDATE rooms SET ' . implode(', ', $updates) . ' WHERE room_id = :room_id';
 
 $stmt = $db->prepare($query);
 
-if($stmt->execute($params)) {
+foreach($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+
+if($stmt->execute()) {
     echo json_encode(array('message' => 'Room Updated'));
 } else {
     echo json_encode(array('message' => 'Room Not Updated'));

@@ -12,6 +12,7 @@ export default function RoomCard({ room, user }) {
         switch (status?.toLowerCase()) {
             case 'available':
                 return 'bg-green-100 text-green-800 border-green-300';
+            case 'unavailable':
             case 'booked':
                 return 'bg-red-100 text-red-800 border-red-300';
             case 'maintenance':
@@ -26,6 +27,16 @@ export default function RoomCard({ room, user }) {
             return room.status?.toLowerCase() === 'maintenance' ? 'Under Maintenance' : 'Unavailable';
         }
         return 'Book Now';
+    };
+
+    const getStatusText = () => {
+        if (room.status?.toLowerCase() === 'unavailable') {
+            return 'Fully Booked';
+        }
+        if (room.available_rooms !== undefined) {
+            return `${room.available_rooms} Available`;
+        }
+        return room.status?.charAt(0).toUpperCase() + room.status?.slice(1) || 'Available';
     };
 
     return (
@@ -47,7 +58,7 @@ export default function RoomCard({ room, user }) {
 
                 {/* Status Badge */}
                 <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(room.status)}`}>
-                    {room.status?.charAt(0).toUpperCase() + room.status?.slice(1) || 'Available'}
+                    {getStatusText()}
                 </div>
 
                 <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-bold text-primary-900 shadow-sm">

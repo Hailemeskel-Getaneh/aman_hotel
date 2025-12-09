@@ -46,6 +46,34 @@ export const roomService = {
     }
 };
 
+export const roomTypeService = {
+    getAll: async () => {
+        const response = await api.get('/room-types/read.php');
+        return response.data;
+    },
+    getAvailability: async () => {
+        const response = await api.get('/room-types/availability.php');
+        return response.data;
+    },
+    getSingle: async (id) => {
+        const response = await api.get(`/room-types/read_single.php?id=${id}`);
+        return response.data;
+    },
+    // Admin
+    create: async (typeData) => {
+        const response = await api.post('/room-types/create.php', typeData);
+        return response.data;
+    },
+    update: async (typeData) => {
+        const response = await api.put('/room-types/update.php', typeData);
+        return response.data;
+    },
+    delete: async (typeId) => {
+        const response = await api.post('/room-types/delete.php', { type_id: typeId });
+        return response.data;
+    }
+};
+
 export const bookingService = {
     create: async (bookingData) => {
         const response = await api.post('/bookings/create.php', bookingData);

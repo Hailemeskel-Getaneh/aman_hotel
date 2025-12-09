@@ -13,8 +13,21 @@ Cors::handle();
 $database = new Database();
 $db = $database->connect();
 
-// Query
-$query = 'SELECT * FROM rooms';
+// Query - JOIN with room_types to get complete information
+$query = 'SELECT 
+    r.room_id,
+    r.room_number,
+    r.room_type_id,
+    r.status,
+    rt.type_name,
+    rt.description,
+    rt.price_per_night,
+    rt.image_url,
+    rt.amenities,
+    rt.max_occupancy
+FROM rooms r
+INNER JOIN room_types rt ON r.room_type_id = rt.type_id
+ORDER BY rt.type_name, r.room_number';
 
 // Prepare statement
 $stmt = $db->prepare($query);
@@ -37,10 +50,14 @@ if($num > 0) {
         $post_item = array(
             'room_id' => $room_id,
             'room_number' => $room_number,
-            'room_type' => $room_type,
+            'room_type_id' => $room_type_id,
+            'room_type' => $type_name,
             'price_per_night' => $price_per_night,
             'status' => $status,
-            'description' => html_entity_decode($description)
+            'description' => html_entity_decode($description),
+            'image_url' => $image_url,
+            'amenities' => $amenities,
+            'max_occupancy' => $max_occupancy
         );
 
         // Push to "data"
