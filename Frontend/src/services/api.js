@@ -31,6 +31,10 @@ export const roomService = {
         const response = await api.get(`/rooms/read_single.php?id=${id}`);
         return response.data;
     },
+    getRoomsByType: async (typeId, status = 'available') => {
+        const response = await api.get(`/rooms/read_by_type.php?type_id=${typeId}&status=${status}`);
+        return response.data;
+    },
     // Admin
     create: async (roomData) => {
         const response = await api.post('/rooms/create.php', roomData);
