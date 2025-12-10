@@ -39,6 +39,14 @@ export const roomService = {
         const response = await api.get(`/rooms/read_by_type.php?type_id=${typeId}&status=${status}`);
         return response.data;
     },
+    checkAvailability: async (checkIn, checkOut, roomTypeId = '') => {
+        let url = `/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`;
+        if (roomTypeId) {
+            url += `&room_type_id=${roomTypeId}`;
+        }
+        const response = await api.get(url);
+        return response.data;
+    },
     // Admin
     create: async (roomData) => {
         const response = await api.post('/rooms/create.php', roomData);
@@ -48,8 +56,8 @@ export const roomService = {
         const response = await api.put('/rooms/update.php', roomData);
         return response.data;
     },
-    delete: async (roomId) => {
-        const response = await api.post('/rooms/delete.php', { room_id: roomId });
+    delete: async (id) => {
+        const response = await api.delete(`/rooms/delete.php?id=${id}`);
         return response.data;
     }
 };
@@ -60,11 +68,15 @@ export const roomTypeService = {
         return response.data;
     },
     getAvailability: async () => {
-        const response = await api.get('/room-types/availability.php');
+        const response = await api.get('/room-types/read_availability.php');
         return response.data;
     },
     getSingle: async (id) => {
         const response = await api.get(`/room-types/read_single.php?id=${id}`);
+        return response.data;
+    },
+    checkAvailability: async (checkIn, checkOut) => {
+        const response = await api.get(`/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`);
         return response.data;
     },
     // Admin
@@ -76,8 +88,8 @@ export const roomTypeService = {
         const response = await api.put('/room-types/update.php', typeData);
         return response.data;
     },
-    delete: async (typeId) => {
-        const response = await api.post('/room-types/delete.php', { type_id: typeId });
+    delete: async (id) => {
+        const response = await api.delete(`/room-types/delete.php?id=${id}`);
         return response.data;
     }
 };
