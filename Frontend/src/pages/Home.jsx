@@ -38,6 +38,9 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [dateFilterActive, setDateFilterActive] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -48,29 +51,59 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const data = await roomService.getAll();
-        if (data.data) {
-          const mappedRooms = data.data.slice(0, 3).map(r => ({
-            id: r.room_id,
-            name: r.room_type || r.room_number,
-            price: r.price_per_night,
-            image: getImageForRoomType(r.room_type),
-            short_description: r.description,
-            status: r.status || 'available'
-          }));
-          setRooms(mappedRooms);
-        }
-      } catch (err) {
-        console.error("Error fetching rooms:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRooms();
   }, []);
+
+  const fetchRooms = async (useFilters = false) => {
+    setLoading(true);
+    try {
+      let data;
+      if (useFilters && checkIn && checkOut) {
+        // Fetch with date filters
+        data = await roomService.checkAvailability(checkIn, checkOut);
+        setDateFilterActive(true);
+      } else {
+        // Fetch all rooms
+        data = await roomService.getAll();
+        setDateFilterActive(false);
+      }
+
+      if (data.data) {
+        const mappedRooms = data.data.slice(0, 3).map(r => ({
+          id: r.room_id,
+          name: r.room_type || r.room_number,
+          price: r.price_per_night,
+          image: getImageForRoomType(r.room_type),
+          short_description: r.description,
+          status: useFilters ? (r.available_for_dates ? 'available' : 'booked') : (r.status || 'available')
+        }));
+        setRooms(mappedRooms);
+      }
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchAvailability = () => {
+    if (checkIn && checkOut) {
+      if (new Date(checkOut) <= new Date(checkIn)) {
+        alert('Check-out date must be after check-in date');
+        return;
+      }
+      fetchRooms(true);
+    } else {
+      alert('Please select both check-in and check-out dates');
+    }
+  };
+
+  const handleClearDates = () => {
+    setCheckIn('');
+    setCheckOut('');
+    fetchRooms(false);
+  };
+
 
   return (
     <main className="bg-background min-h-screen">
@@ -147,6 +180,67 @@ export default function Home() {
               <p className="text-gray-600">{feature.desc}</p>
             </motion.div>
           ))}
+        </div>
+      </Section>
+
+      {/* Date Filter Section */}
+      <Section className="bg-primary-900 text-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-white">Check Availability</h2>
+            <p className="text-gray-300">Select your dates to see available rooms</p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white">Check-in Date</label>
+                <input
+                  type="date"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 border-none focus:ring-2 focus:ring-secondary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white">Check-out Date</label>
+                <input
+                  type="date"
+                  value={checkOut}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                  min={checkIn || new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 border-none focus:ring-2 focus:ring-secondary"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSearchAvailability}
+                  className="flex-1 bg-secondary text-primary-900 hover:bg-secondary-light py-3 font-semibold"
+                  disabled={!checkIn || !checkOut}
+                >
+                  Search Rooms
+                </Button>
+                {dateFilterActive && (
+                  <Button
+                    onClick={handleClearDates}
+                    variant="outline"
+                    className="bg-white/20 text-white border-white hover:bg-white/30 py-3 font-semibold"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {dateFilterActive && (
+              <div className="mt-4 text-center text-sm text-gray-200">
+                Showing rooms available from {new Date(checkIn).toLocaleDateString()} to {new Date(checkOut).toLocaleDateString()}
+              </div>
+            )}
+          </div>
         </div>
       </Section>
 
