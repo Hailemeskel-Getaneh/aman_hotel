@@ -226,6 +226,10 @@ function AdminRooms() {
     const [roomTypes, setRoomTypes] = useState([]);
     const [showModal, setShowModal] = useState(false);
     
+    // Filter states
+    const [filterType, setFilterType] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         room_id: null, room_number: '', room_type_id: '', status: 'available'
@@ -279,11 +283,83 @@ function AdminRooms() {
         loadRooms();
     };
 
+    const handleClearFilters = () => {
+        setFilterType('');
+        setFilterStatus('');
+    };
+
+    // Filter rooms based on selected filters
+    const filteredRooms = rooms.filter(room => {
+        const typeMatch = !filterType || room.room_type_id == filterType;
+        const statusMatch = !filterStatus || room.status === filterStatus;
+        return typeMatch && statusMatch;
+    });
+
     return (
         <div>
+            {/* Filter Controls */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '1rem', 
+                marginBottom: '1rem', 
+                alignItems: 'center',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <label style={{ fontWeight: '500' }}>Filter by Type:</label>
+                    <select 
+                        value={filterType} 
+                        onChange={(e) => setFilterType(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
+                    >
+                        <option value="">All Types</option>
+                        {roomTypes.map(type => (
+                            <option key={type.type_id} value={type.type_id}>
+                                {type.type_name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <label style={{ fontWeight: '500' }}>Filter by Status:</label>
+                    <select 
+                        value={filterStatus} 
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="available">Available</option>
+                        <option value="booked">Booked</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                {(filterType || filterStatus) && (
+                    <button 
+                        onClick={handleClearFilters}
+                        style={{ 
+                            padding: '0.5rem 1rem', 
+                            backgroundColor: '#6c757d', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '4px', 
+                            cursor: 'pointer' 
+                        }}
+                    >
+                        Clear Filters
+                    </button>
+                )}
+
+                <div style={{ marginLeft: 'auto', fontWeight: '500', color: '#555' }}>
+                    Showing {filteredRooms.length} of {rooms.length} rooms
+                </div>
+            </div>
+
             <button className="btn-primary" style={{ marginBottom: '1rem' }} onClick={handleAdd}>
                 + Add New Room
             </button>
+
             <div className="table-container">
                 <table className="admin-table">
                     <thead>
@@ -296,7 +372,7 @@ function AdminRooms() {
                         </tr>
                     </thead>
                     <tbody>
-                        {rooms.map(room => (
+                        {filteredRooms.map(room => (
                             <tr key={room.room_id}>
                                 <td>{room.room_number}</td>
                                 <td>{room.room_type}</td>
@@ -312,7 +388,7 @@ function AdminRooms() {
                                 </td>
                             </tr>
                         ))}
-                        {rooms.length === 0 && <tr><td colSpan="5">No rooms found.</td></tr>}
+                        {filteredRooms.length === 0 && <tr><td colSpan="5">No rooms found matching filters.</td></tr>}
                     </tbody>
                 </table>
             </div>
