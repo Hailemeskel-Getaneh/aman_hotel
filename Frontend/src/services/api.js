@@ -68,7 +68,7 @@ export const roomTypeService = {
         return response.data;
     },
     getAvailability: async () => {
-        const response = await api.get('/room-types/read_availability.php');
+        const response = await api.get('/room-types/availability.php');
         return response.data;
     },
     getSingle: async (id) => {
