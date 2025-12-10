@@ -20,6 +20,10 @@ export const authService = {
         const response = await api.post('/auth/register.php', userData);
         return response.data;
     },
+    searchUsers: async (searchTerm = '') => {
+        const response = await api.get(`/auth/search_users.php?search=${encodeURIComponent(searchTerm)}`);
+        return response.data;
+    },
 };
 
 export const roomService = {
