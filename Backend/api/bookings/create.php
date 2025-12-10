@@ -39,8 +39,11 @@ if($nights <= 0) {
     exit();
 }
 
-// Get Room Price
-$query = "SELECT price_per_night FROM rooms WHERE room_id = :room_id";
+// Get Room Price from room_types table (after migration)
+$query = "SELECT rt.price_per_night 
+          FROM rooms r
+          INNER JOIN room_types rt ON r.room_type_id = rt.type_id
+          WHERE r.room_id = :room_id";
 $stmt = $db->prepare($query);
 $stmt->bindParam(':room_id', $room_id);
 $stmt->execute();
@@ -82,6 +85,14 @@ $stmt->bindParam(':final_price', $final_price);
 $stmt->bindParam(':status', $status);
 
 if($stmt->execute()) {
+    // Update room status to 'booked'
+    $update_query = 'UPDATE rooms SET status = :status WHERE room_id = :room_id';
+    $update_stmt = $db->prepare($update_query);
+    $booked_status = 'booked';
+    $update_stmt->bindParam(':status', $booked_status);
+    $update_stmt->bindParam(':room_id', $room_id);
+    $update_stmt->execute();
+    
     echo json_encode(array('message' => 'Booking Created'));
 } else {
     echo json_encode(array('message' => 'Booking Failed'));

@@ -19,10 +19,12 @@ $query = 'SELECT
             u.name as user_name, 
             u.email as user_email,
             r.room_number,
-            r.room_type 
+            rt.type_name as room_type,
+            rt.price_per_night
           FROM bookings b
           JOIN users u ON b.user_id = u.id
           JOIN rooms r ON b.room_id = r.room_id
+          JOIN room_types rt ON r.room_type_id = rt.type_id
           ORDER BY b.created_at DESC';
 
 $stmt = $db->prepare($query);
