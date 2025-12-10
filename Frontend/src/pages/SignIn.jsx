@@ -18,11 +18,20 @@ export default function SignIn() {
                 // Success
                 localStorage.setItem("user", JSON.stringify(data.user));
 
-                // Redirect based on role
-                if (data.user.role === 'admin') {
-                    navigate('/admin');
+                // Check if there's a saved redirect URL
+                const redirectUrl = localStorage.getItem('redirectAfterLogin');
+
+                if (redirectUrl) {
+                    // Clear the saved URL and redirect to it
+                    localStorage.removeItem('redirectAfterLogin');
+                    navigate(redirectUrl);
                 } else {
-                    navigate('/');
+                    // Default redirect based on role
+                    if (data.user.role === 'admin') {
+                        navigate('/admin');
+                    } else {
+                        navigate('/');
+                    }
                 }
             } else {
                 setError(data.message || "Login failed");
