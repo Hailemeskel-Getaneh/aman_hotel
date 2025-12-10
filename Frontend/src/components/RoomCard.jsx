@@ -6,7 +6,7 @@ import placeholderImg from '../assets/images/placeholder.png';
 
 export default function RoomCard({ room, user }) {
     const isAvailable = room.status?.toLowerCase() === 'available';
-    const linkTarget = user && isAvailable ? `/booking?roomId=${room.id}` : (isAvailable ? "/signin" : "#");
+    const linkTarget = user && isAvailable ? `/booking?roomTypeId=${room.id}` : (isAvailable ? "/signin" : "#");
 
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
