@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Booking.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { bookingService, roomService, roomTypeService } from "../services/api";
+import { bookingService, roomService, roomTypeService, paymentService } from "../services/api";
 
 export default function BookingPage() {
     const navigate = useNavigate();
@@ -133,9 +133,21 @@ export default function BookingPage() {
 
             const data = await bookingService.create(bookingData);
 
-            if (data.message === "Booking Created") {
-                alert("Booking Successful!");
-                navigate("/my-bookings"); // Redirect to My Bookings page
+            if (data.message === "Booking Created" && data.booking_id) {
+                // Initialize Payment
+                try {
+                    const paymentData = await paymentService.initialize(data.booking_id);
+                    if (paymentData.checkout_url) {
+                        window.location.href = paymentData.checkout_url;
+                    } else {
+                        alert("Booking created but payment initialization failed. Please try paying from 'My Bookings'.");
+                        navigate("/my-bookings");
+                    }
+                } catch (payErr) {
+                    console.error("Payment initialization error:", payErr);
+                    alert("Booking created but payment service is unavailable. Please check 'My Bookings'.");
+                    navigate("/my-bookings");
+                }
             } else {
                 setError(data.message || "Booking failed.");
             }

@@ -93,7 +93,11 @@ if($stmt->execute()) {
     $update_stmt->bindParam(':room_id', $room_id);
     $update_stmt->execute();
     
-    echo json_encode(array('message' => 'Booking Created'));
+    $booking_id = $db->lastInsertId();
+    echo json_encode(array(
+        'message' => 'Booking Created',
+        'booking_id' => $booking_id
+    ));
 } else {
     echo json_encode(array('message' => 'Booking Failed'));
 }
