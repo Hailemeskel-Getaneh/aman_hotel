@@ -154,20 +154,32 @@ export default function MyBookings() {
                                     </div>
 
 
-                                    <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2 justify-between items-center">
                                         <p className="text-xs text-gray-500">
                                             Booked on: {new Date(booking.created_at).toLocaleDateString()}
                                         </p>
-                                        {booking.status === 'pending' && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => handlePayment(booking.id)}
-                                                className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
-                                            >
-                                                Pay Now
-                                            </motion.button>
-                                        )}
+                                        <div className="flex gap-2">
+                                            {(booking.status === 'confirmed' || booking.status === 'completed') && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => navigate(`/receipt/${booking.id}`)}
+                                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-gray-200 transition-colors"
+                                                >
+                                                    View Receipt
+                                                </motion.button>
+                                            )}
+                                            {booking.status === 'pending' && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handlePayment(booking.id)}
+                                                    className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                >
+                                                    Pay Now
+                                                </motion.button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
