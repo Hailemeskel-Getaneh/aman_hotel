@@ -111,6 +111,10 @@ export const bookingService = {
     updateStatus: async (id, status) => {
         const response = await api.put('/bookings/update.php', { id, status });
         return response.data;
+    },
+    getReceipt: async (bookingId) => {
+        const response = await api.get(`/bookings/read_receipt.php?booking_id=${bookingId}`);
+        return response.data;
     }
 };
 
