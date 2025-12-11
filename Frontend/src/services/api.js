@@ -146,4 +146,15 @@ export const eventService = {
     }
 };
 
+export const paymentService = {
+    initialize: async (bookingId) => {
+        const response = await api.post('/payment/initialize.php', { booking_id: bookingId });
+        return response.data;
+    },
+    verify: async (txRef) => {
+        const response = await api.post('/payment/verify.php', { tx_ref: txRef });
+        return response.data;
+    }
+};
+
 export default api;
