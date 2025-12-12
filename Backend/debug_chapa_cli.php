@@ -6,36 +6,23 @@ $chapaConfig = include 'config/chapa.php';
 echo "Testing Chapa Connection...\n";
 echo "Secret Key Prefix: " . substr($chapaConfig['secret_key'], 0, 10) . "...\n";
 
-$tx_ref = 'TEST-DEBUG-' . time();
-$payload = [
-    'amount' => '100',
-    'currency' => 'ETB',
-    'email' => 'aman_guest@gmail.com',
-    'first_name' => 'Aman',
-    'last_name' => 'User',
-    'tx_ref' => $tx_ref,
-    'callback_url' => 'https://example.com/callback',
-    'return_url' => 'https://example.com/return',
-    "customization" => [
-        "title" => "Debug Payment",
-        "description" => "Testing API"
-    ]
-];
 
-$chapaUrl = 'https://api.chapa.co/v1/transaction/initialize';
+$tx_ref_to_verify = 'TX-2-1765527529'; // From logs
+$chapaUrl = 'https://api.chapa.co/v1/transaction/verify/' . $tx_ref_to_verify;
+
+echo "Verifying TX: $tx_ref_to_verify\n";
+
 $ch = curl_init($chapaUrl);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Bearer ' . $chapaConfig['secret_key'],
     'Content-Type: application/json'
 ]);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); // Loosened for XAMPP
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); 
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 
 $response = curl_exec($ch);
+
 
 if (curl_errno($ch)) {
     echo "CURL Error: " . curl_error($ch) . "\n";

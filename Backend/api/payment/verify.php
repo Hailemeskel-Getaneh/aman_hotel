@@ -35,7 +35,20 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+
+// DEBUG: Log the verification attempt
+$logMsg = date('Y-m-d H:i:s') . " Verifying TX: " . $tx_ref . "\n";
+file_put_contents('../../logs/payment_debug.log', $logMsg, FILE_APPEND);
+
 $response = curl_exec($ch);
+
+// DEBUG: Log the response
+file_put_contents('../../logs/payment_debug.log', date('Y-m-d H:i:s') . " Verify Response: " . $response . "\n", FILE_APPEND);
+
+if (curl_errno($ch)) {
+    file_put_contents('../../logs/payment_debug.log', "Curl Error: " . curl_error($ch) . "\n", FILE_APPEND);
+}
+
 curl_close($ch);
 
 $result = json_decode($response, true);

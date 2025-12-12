@@ -140,12 +140,14 @@ export default function BookingPage() {
                     if (paymentData.checkout_url) {
                         window.location.href = paymentData.checkout_url;
                     } else {
-                        alert("Booking created but payment initialization failed. Please try paying from 'My Bookings'.");
+                        // Debugging: Show exactly what was returned
+                        console.log("PAYMENT INIT FAILED DATA:", paymentData);
+                        alert("Payment Init Failed. Response: " + JSON.stringify(paymentData));
                         navigate("/my-bookings");
                     }
                 } catch (payErr) {
                     console.error("Payment initialization error:", payErr);
-                    alert("Booking created but payment service is unavailable. Please check 'My Bookings'.");
+                    alert("Payment Error: " + (payErr.response?.data?.message || payErr.message));
                     navigate("/my-bookings");
                 }
             } else {
