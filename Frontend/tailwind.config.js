@@ -19,6 +19,11 @@ export default {
                     800: '#243b53',
                     900: '#102a43',
                 },
+                secondary: {
+                    light: '#f7eebf',
+                    DEFAULT: '#d4af37', // Gold
+                    dark: '#b08d26',
+                },
                 accent: {
                     light: '#f7eebf',
                     DEFAULT: '#d4af37', // Gold

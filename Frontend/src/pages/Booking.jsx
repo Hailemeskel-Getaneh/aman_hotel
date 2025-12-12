@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Booking.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { bookingService, roomService } from "../services/api";
+import { bookingService, roomService, roomTypeService, paymentService } from "../services/api";
 
 export default function BookingPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const roomIdFromUrl = searchParams.get("roomId");
+    const roomTypeIdFromUrl = searchParams.get("roomTypeId");
 
     // Check if user is logged in
     const user = JSON.parse(localStorage.getItem("user"));
@@ -22,11 +22,49 @@ export default function BookingPage() {
         checkin: "",
         checkout: "",
         guests: 1,
-        roomType: roomIdFromUrl || "", // We might use room ID here if available
+        selectedRoomId: "",
     });
 
+    const [availableRooms, setAvailableRooms] = useState([]);
+    const [roomTypeName, setRoomTypeName] = useState("");
+    const [loading, setLoading] = useState(false);
     const [isDatesValid, setIsDatesValid] = useState(false);
     const [error, setError] = useState("");
+
+    // Fetch available rooms when component mounts or roomTypeId changes
+    useEffect(() => {
+        const fetchAvailableRooms = async () => {
+            if (!roomTypeIdFromUrl) return;
+
+            setLoading(true);
+            setError("");
+
+            try {
+                // Fetch room type details
+                const typeData = await roomTypeService.getSingle(roomTypeIdFromUrl);
+                if (typeData.data) {
+                    setRoomTypeName(typeData.data.type_name);
+                }
+
+                // Fetch available rooms for this type
+                const roomsData = await roomService.getRoomsByType(roomTypeIdFromUrl, 'available');
+
+                if (roomsData.data && roomsData.data.length > 0) {
+                    setAvailableRooms(roomsData.data);
+                } else {
+                    setAvailableRooms([]);
+                    setError("No available rooms for this room type at the moment.");
+                }
+            } catch (err) {
+                console.error("Error fetching available rooms:", err);
+                setError("Failed to load available rooms.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAvailableRooms();
+    }, [roomTypeIdFromUrl]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -51,30 +89,27 @@ export default function BookingPage() {
             return;
         }
 
-        // In a real app, we'd check against backend availability here.
-        // For now, we assume available if dates are valid.
+        if (!form.selectedRoomId) {
+            setError("Please select a room.");
+            return;
+        }
+
+        // In a real app, we'd check against backend availability for the specific dates here.
+        // For now, we assume available if dates are valid and room is selected.
         setIsDatesValid(true);
     };
 
     const handleBooking = async () => {
         if (!isDatesValid) return;
 
-        // We need a valid room_id. 
-        // If the user came from the Rooms page, we have roomIdFromUrl.
-        // If not, we might need to map 'roomType' to an ID or error out. 
-        // For this simple implementation, let's assume we use the roomId passed or default to 1 if testing.
-
-        const roomIdToUse = roomIdFromUrl || form.roomType; // Use what we have
-
-        // Basic validation that we have a room ID (if roomType select is used as ID selector in this simple version)
-        if (!roomIdToUse) {
+        if (!form.selectedRoomId) {
             setError("Please select a room.");
             return;
         }
 
         try {
-            // First, check if the room is available
-            const roomData = await roomService.getSingle(roomIdToUse);
+            // Verify the room is still available
+            const roomData = await roomService.getSingle(form.selectedRoomId);
 
             if (!roomData.data) {
                 setError("Room not found.");
@@ -91,16 +126,28 @@ export default function BookingPage() {
             // Proceed with booking if room is available
             const bookingData = {
                 user_id: user.id,
-                room_id: roomIdToUse,
+                room_id: form.selectedRoomId,
                 check_in: form.checkin,
                 check_out: form.checkout
             };
 
             const data = await bookingService.create(bookingData);
 
-            if (data.message === "Booking Created") {
-                alert("Booking Successful!");
-                navigate("/my-bookings"); // Redirect to My Bookings page
+            if (data.message === "Booking Created" && data.booking_id) {
+                // Initialize Payment
+                try {
+                    const paymentData = await paymentService.initialize(data.booking_id);
+                    if (paymentData.checkout_url) {
+                        window.location.href = paymentData.checkout_url;
+                    } else {
+                        alert("Booking created but payment initialization failed. Please try paying from 'My Bookings'.");
+                        navigate("/my-bookings");
+                    }
+                } catch (payErr) {
+                    console.error("Payment initialization error:", payErr);
+                    alert("Booking created but payment service is unavailable. Please check 'My Bookings'.");
+                    navigate("/my-bookings");
+                }
             } else {
                 setError(data.message || "Booking failed.");
             }
@@ -113,7 +160,15 @@ export default function BookingPage() {
     return (
         <div className="booking-container">
             <h2>Book Your Room</h2>
+
+            {roomTypeName && (
+                <p style={{ textAlign: 'center', fontSize: '1.1rem', marginBottom: '1rem', color: '#333' }}>
+                    Room Type: <strong>{roomTypeName}</strong>
+                </p>
+            )}
+
             {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+            {loading && <p style={{ textAlign: 'center' }}>Loading available rooms...</p>}
 
             <form className="booking-form" onSubmit={checkAvailability}>
                 <div className="form-group">
@@ -124,6 +179,7 @@ export default function BookingPage() {
                         required
                         value={form.checkin}
                         onChange={handleChange}
+                        min={new Date().toISOString().split('T')[0]}
                     />
                 </div>
 
@@ -135,6 +191,7 @@ export default function BookingPage() {
                         required
                         value={form.checkout}
                         onChange={handleChange}
+                        min={form.checkin || new Date().toISOString().split('T')[0]}
                     />
                 </div>
 
@@ -152,20 +209,26 @@ export default function BookingPage() {
                 </div>
 
                 <div className="form-group">
-                    <label>Room ID / Type</label>
-                    {/* If we have a roomId from URL, maybe show it as read-only or selected. 
-                        Otherwise show a select box. For simplicity, reusing the input/select logic 
-                        but treating value as ID if possible. 
-                        Ideally we'd fetch room list to populate this select with IDs.
-                    */}
-                    <input
-                        type="text"
-                        name="roomType"
-                        value={form.roomType}
+                    <label>Select Room Number</label>
+                    <select
+                        name="selectedRoomId"
+                        value={form.selectedRoomId}
                         onChange={handleChange}
-                        placeholder="Room ID (e.g. 1)"
-                        readOnly={!!roomIdFromUrl} // Lock if came from rooms page
-                    />
+                        required
+                        disabled={loading || availableRooms.length === 0}
+                    >
+                        <option value="">-- Select a Room --</option>
+                        {availableRooms.map((room) => (
+                            <option key={room.room_id} value={room.room_id}>
+                                Room {room.room_number} - ${room.price_per_night}/night
+                            </option>
+                        ))}
+                    </select>
+                    {availableRooms.length > 0 && (
+                        <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                            {availableRooms.length} room{availableRooms.length !== 1 ? 's' : ''} available
+                        </small>
+                    )}
                 </div>
 
                 <button type="submit" className="book-btn">
@@ -182,4 +245,3 @@ export default function BookingPage() {
         </div>
     );
 }
-

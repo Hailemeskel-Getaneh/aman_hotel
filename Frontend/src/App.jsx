@@ -15,6 +15,9 @@ import Register from "./pages/Register";
 import Events from "./pages/Event.jsx";
 import Admin from "./pages/Admin.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import PaymentFailed from "./pages/PaymentFailed.jsx";
+import Receipt from "./pages/Receipt.jsx";
 
 // Layout component to handle conditional rendering of Navbar/Footer
 function Layout({ children }) {
@@ -45,6 +48,9 @@ export default function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/register" element={<Register />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/failed" element={<PaymentFailed />} />
+          <Route path="/receipt/:bookingId" element={<Receipt />} />
 
           <Route path="/events" element={<Events />} />
           <Route path="/admin" element={<Admin />} />

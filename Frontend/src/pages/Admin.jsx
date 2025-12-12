@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Admin.css';
-import { roomService, roomTypeService, bookingService, contactService, eventService } from '../services/api';
+import { roomService, roomTypeService, bookingService, contactService, eventService, authService } from '../services/api';
 
 export default function Admin() {
     const [activeTab, setActiveTab] = useState('rooms');
@@ -225,11 +225,28 @@ function AdminRooms() {
     const [rooms, setRooms] = useState([]);
     const [roomTypes, setRoomTypes] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    
+    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
+
+    // Filter states
+    const [filterType, setFilterType] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         room_id: null, room_number: '', room_type_id: '', status: 'available'
     });
+
+    const [bookingFormData, setBookingFormData] = useState({
+        user_id: '',
+        check_in: '',
+        check_out: '',
+    });
+
+    const [userSearch, setUserSearch] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+
 
     useEffect(() => {
         loadRooms();
@@ -279,11 +296,153 @@ function AdminRooms() {
         loadRooms();
     };
 
+    const handleClearFilters = () => {
+        setFilterType('');
+        setFilterStatus('');
+    };
+
+    const handleCreateManualBooking = (room) => {
+        setSelectedRoom(room);
+        setBookingFormData({
+            user_id: '',
+            check_in: '',
+            check_out: '',
+        });
+        setUserSearch('');
+        setSearchResults([]);
+        setSelectedUser(null);
+        setShowBookingModal(true);
+    };
+
+    const handleUserSearch = async (searchTerm) => {
+        setUserSearch(searchTerm);
+        if (searchTerm.length >= 2) {
+            try {
+                const data = await authService.searchUsers(searchTerm);
+                if (data.data) {
+                    setSearchResults(data.data);
+                } else {
+                    setSearchResults([]);
+                }
+            } catch (err) {
+                console.error('Error searching users:', err);
+                setSearchResults([]);
+            }
+        } else {
+            setSearchResults([]);
+        }
+    };
+
+    const handleSelectUser = (user) => {
+        setSelectedUser(user);
+        setBookingFormData({ ...bookingFormData, user_id: user.id });
+        setUserSearch(user.name + ' (' + user.email + ')');
+        setSearchResults([]);
+    };
+
+    const handleBookingSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!selectedUser) {
+            alert('Please select a user for this booking');
+            return;
+        }
+
+        try {
+            const bookingData = {
+                user_id: selectedUser.id, // Use selected user's ID
+                room_id: selectedRoom.room_id,
+                check_in: bookingFormData.check_in,
+                check_out: bookingFormData.check_out,
+            };
+
+            const result = await bookingService.create(bookingData);
+
+            if (result.message === 'Booking Created') {
+                alert(`Manual booking created successfully for ${selectedUser.name}!`);
+                setShowBookingModal(false);
+                loadRooms(); // Refresh to show updated status
+            } else {
+                alert('Booking failed: ' + (result.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error creating booking');
+        }
+    };
+
+    // Filter rooms based on selected filters
+    const filteredRooms = rooms.filter(room => {
+        const typeMatch = !filterType || room.room_type_id == filterType;
+        const statusMatch = !filterStatus || room.status === filterStatus;
+        return typeMatch && statusMatch;
+    });
+
     return (
         <div>
+            {/* Filter Controls */}
+            <div style={{
+                display: 'flex',
+                gap: '1rem',
+                marginBottom: '1rem',
+                alignItems: 'center',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <label style={{ fontWeight: '500' }}>Filter by Type:</label>
+                    <select
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
+                    >
+                        <option value="">All Types</option>
+                        {roomTypes.map(type => (
+                            <option key={type.type_id} value={type.type_id}>
+                                {type.type_name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <label style={{ fontWeight: '500' }}>Filter by Status:</label>
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="available">Available</option>
+                        <option value="booked">Booked</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+
+                {(filterType || filterStatus) && (
+                    <button
+                        onClick={handleClearFilters}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            backgroundColor: '#6c757d',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Clear Filters
+                    </button>
+                )}
+
+                <div style={{ marginLeft: 'auto', fontWeight: '500', color: '#555' }}>
+                    Showing {filteredRooms.length} of {rooms.length} rooms
+                </div>
+            </div>
+
             <button className="btn-primary" style={{ marginBottom: '1rem' }} onClick={handleAdd}>
                 + Add New Room
             </button>
+
             <div className="table-container">
                 <table className="admin-table">
                     <thead>
@@ -296,7 +455,7 @@ function AdminRooms() {
                         </tr>
                     </thead>
                     <tbody>
-                        {rooms.map(room => (
+                        {filteredRooms.map(room => (
                             <tr key={room.room_id}>
                                 <td>{room.room_number}</td>
                                 <td>{room.room_type}</td>
@@ -309,14 +468,24 @@ function AdminRooms() {
                                 <td>
                                     <button className="action-btn btn-edit" onClick={() => handleEdit(room)}>Edit</button>
                                     <button className="action-btn btn-delete" onClick={() => handleDelete(room.room_id)}>Delete</button>
+                                    {room.status === 'available' && (
+                                        <button
+                                            className="action-btn btn-primary"
+                                            onClick={() => handleCreateManualBooking(room)}
+                                            style={{ backgroundColor: '#28a745' }}
+                                        >
+                                            Book
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
-                        {rooms.length === 0 && <tr><td colSpan="5">No rooms found.</td></tr>}
+                        {filteredRooms.length === 0 && <tr><td colSpan="5">No rooms found matching filters.</td></tr>}
                     </tbody>
                 </table>
             </div>
 
+            {/* Room Edit/Add Modal */}
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -339,13 +508,123 @@ function AdminRooms() {
                                 <label>Status</label>
                                 <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })}>
                                     <option value="available">Available</option>
-                                    <option value="booked">Booked</option>
                                     <option value="maintenance">Maintenance</option>
+                                    {/* Removed "booked" option - bookings should be created through the booking system */}
                                 </select>
+                                <small style={{ color: '#666', fontSize: '0.85rem' }}>
+                                    Note: To mark a room as booked, create a booking instead.
+                                </small>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                 <button type="button" onClick={() => setShowModal(false)}>Cancel</button>
                                 <button type="submit" className="btn-primary">{isEditing ? 'Update' : 'Save'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Manual Booking Modal */}
+            {showBookingModal && selectedRoom && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Create Manual Booking</h3>
+                        <p style={{ color: '#666', marginBottom: '1rem' }}>
+                            Room {selectedRoom.room_number} - {selectedRoom.room_type}
+                        </p>
+                        <form onSubmit={handleBookingSubmit}>
+                            <div className="form-group" style={{ position: 'relative' }}>
+                                <label>Search User (by name or email)</label>
+                                <input
+                                    type="text"
+                                    value={userSearch}
+                                    onChange={e => handleUserSearch(e.target.value)}
+                                    placeholder="Type to search registered users..."
+                                    required={!selectedUser}
+                                />
+                                {searchResults.length > 0 && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        backgroundColor: 'white',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '4px',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        zIndex: 1000
+                                    }}>
+                                        {searchResults.map(user => (
+                                            <div
+                                                key={user.id}
+                                                onClick={() => handleSelectUser(user)}
+                                                style={{
+                                                    padding: '0.75rem',
+                                                    cursor: 'pointer',
+                                                    borderBottom: '1px solid #eee',
+                                                    transition: 'background-color 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                            >
+                                                <div style={{ fontWeight: '500' }}>{user.name}</div>
+                                                <div style={{ fontSize: '0.85rem', color: '#666' }}>{user.email}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {selectedUser && (
+                                    <div style={{
+                                        marginTop: '0.5rem',
+                                        padding: '0.5rem',
+                                        backgroundColor: '#e8f5e9',
+                                        borderRadius: '4px',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        ✓ Selected: <strong>{selectedUser.name}</strong> ({selectedUser.email})
+                                    </div>
+                                )}
+                                <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '0.25rem' }}>
+                                    Type at least 2 characters to search
+                                </small>
+                            </div>
+                            <div className="form-group">
+                                <label>Check-in Date</label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={bookingFormData.check_in}
+                                    onChange={e => setBookingFormData({ ...bookingFormData, check_in: e.target.value })}
+                                    min={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Check-out Date</label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={bookingFormData.check_out}
+                                    onChange={e => setBookingFormData({ ...bookingFormData, check_out: e.target.value })}
+                                    min={bookingFormData.check_in || new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                            <div style={{
+                                backgroundColor: '#e3f2fd',
+                                padding: '0.75rem',
+                                borderRadius: '4px',
+                                marginBottom: '1rem',
+                                fontSize: '0.9rem'
+                            }}>
+                                <strong>Note:</strong> This booking will be created for the selected registered user.
+                                The room status will automatically change to "booked".
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                <button type="button" onClick={() => setShowBookingModal(false)}>Cancel</button>
+                                <button type="submit" className="btn-primary" disabled={!selectedUser}>
+                                    Create Booking
+                                </button>
                             </div>
                         </form>
                     </div>

@@ -6,7 +6,16 @@ import placeholderImg from '../assets/images/placeholder.png';
 
 export default function RoomCard({ room, user }) {
     const isAvailable = room.status?.toLowerCase() === 'available';
-    const linkTarget = user && isAvailable ? `/booking?roomId=${room.id}` : (isAvailable ? "/signin" : "#");
+
+    const handleBookNowClick = (e) => {
+        if (!user && isAvailable) {
+            // Save the intended booking URL before redirecting to sign-in
+            const bookingUrl = `/booking?roomTypeId=${room.id}`;
+            localStorage.setItem('redirectAfterLogin', bookingUrl);
+        }
+    };
+
+    const linkTarget = user && isAvailable ? `/booking?roomTypeId=${room.id}` : (isAvailable ? "/signin" : "#");
 
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -71,7 +80,7 @@ export default function RoomCard({ room, user }) {
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{room.short_description}</p>
 
                 {isAvailable ? (
-                    <Link to={linkTarget} className="block w-full">
+                    <Link to={linkTarget} className="block w-full" onClick={handleBookNowClick}>
                         <Button variant="primary" className="w-full text-white bg-blue-900">
                             {getButtonText()}
                         </Button>

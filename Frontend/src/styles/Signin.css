@@ -34,7 +34,7 @@
 }
 
 .signin-form input:focus {
-    border-color: #ff6b6b;
+    border-color: #68e278;
     outline: none;
     box-shadow: 0 0 4px rgba(255, 107, 107, 0.4);
 }
@@ -42,7 +42,7 @@
 /* Submit button */
 .signin-form button {
     padding: 12px;
-    background: #ff6b6b;
+    background: #15022c;
     color: #fff;
     font-weight: 600;
     border: none;

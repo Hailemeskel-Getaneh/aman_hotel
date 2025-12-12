@@ -1,0 +1,1 @@
+ALTER TABLE bookings ADD COLUMN transaction_ref VARCHAR(255) DEFAULT NULL AFTER status;

@@ -16,14 +16,28 @@ $db = $database->connect();
 // Get ID
 $id = isset($_GET['id']) ? $_GET['id'] : die();
 
-// Query
-$query = 'SELECT * FROM rooms WHERE room_id = ? LIMIT 0,1';
+// Query - JOIN with room_types to get complete information
+$query = 'SELECT 
+    r.room_id,
+    r.room_number,
+    r.room_type_id,
+    r.status,
+    rt.type_name,
+    rt.description,
+    rt.price_per_night,
+    rt.image_url,
+    rt.amenities,
+    rt.max_occupancy
+FROM rooms r
+INNER JOIN room_types rt ON r.room_type_id = rt.type_id
+WHERE r.room_id = :id
+LIMIT 1';
 
 // Prepare statement
 $stmt = $db->prepare($query);
 
 // Bind ID
-$stmt->bindParam(1, $id);
+$stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
 // Execute query
 $stmt->execute();
@@ -31,14 +45,20 @@ $stmt->execute();
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if($row) {
-    // Create array
+    // Create array with proper structure
     $post_arr = array(
-        'room_id' => $row['room_id'],
-        'room_number' => $row['room_number'],
-        'room_type' => $row['room_type'],
-        'price_per_night' => $row['price_per_night'],
-        'status' => $row['status'],
-        'description' => html_entity_decode($row['description'])
+        'data' => array(
+            'room_id' => $row['room_id'],
+            'room_number' => $row['room_number'],
+            'room_type_id' => $row['room_type_id'],
+            'room_type' => $row['type_name'],
+            'price_per_night' => $row['price_per_night'],
+            'status' => $row['status'],
+            'description' => html_entity_decode($row['description']),
+            'image_url' => $row['image_url'],
+            'amenities' => $row['amenities'],
+            'max_occupancy' => $row['max_occupancy']
+        )
     );
 
     // Make JSON

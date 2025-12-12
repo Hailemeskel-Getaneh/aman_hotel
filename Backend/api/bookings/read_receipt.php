@@ -13,34 +13,35 @@ Cors::handle();
 $database = new Database();
 $db = $database->connect();
 
-// Query to get all bookings with user name and room details
-$query = 'SELECT 
+// Get ID
+$booking_id = isset($_GET['booking_id']) ? $_GET['booking_id'] : die();
+
+// Query
+$query = "SELECT 
             b.*, 
             u.name as user_name, 
             u.email as user_email,
             r.room_number,
-            rt.type_name as room_type,
-            rt.price_per_night
+            rt.type_name as room_type
           FROM bookings b
           JOIN users u ON b.user_id = u.id
           JOIN rooms r ON b.room_id = r.room_id
           JOIN room_types rt ON r.room_type_id = rt.type_id
-          ORDER BY b.created_at DESC';
+          WHERE b.id = :booking_id";
 
+// Prepare statement
 $stmt = $db->prepare($query);
+
+// Bind ID
+$stmt->bindParam(':booking_id', $booking_id);
+
+// Execute query
 $stmt->execute();
 
-$num = $stmt->rowCount();
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if($num > 0) {
-    $bookings_arr = array();
-    $bookings_arr['data'] = array();
-
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        array_push($bookings_arr['data'], $row);
-    }
-
-    echo json_encode($bookings_arr);
+if($row) {
+    echo json_encode($row);
 } else {
-    echo json_encode(array('message' => 'No Bookings Found'));
+    echo json_encode(array('message' => 'Booking Not Found'));
 }

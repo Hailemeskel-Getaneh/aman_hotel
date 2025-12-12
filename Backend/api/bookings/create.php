@@ -39,8 +39,11 @@ if($nights <= 0) {
     exit();
 }
 
-// Get Room Price
-$query = "SELECT price_per_night FROM rooms WHERE room_id = :room_id";
+// Get Room Price from room_types table (after migration)
+$query = "SELECT rt.price_per_night 
+          FROM rooms r
+          INNER JOIN room_types rt ON r.room_type_id = rt.type_id
+          WHERE r.room_id = :room_id";
 $stmt = $db->prepare($query);
 $stmt->bindParam(':room_id', $room_id);
 $stmt->execute();
@@ -56,6 +59,27 @@ $base_price = $nights * $price_per_night;
 $discount_rate = isset($data->discount_rate) ? $data->discount_rate : 0.00;
 $final_price = $base_price - ($base_price * ($discount_rate / 100));
 $status = 'pending';
+
+// Check for conflicting bookings
+$conflict_query = "SELECT COUNT(*) as conflict_count 
+                   FROM bookings 
+                   WHERE room_id = :room_id 
+                   AND status IN ('pending', 'confirmed') 
+                   AND (
+                        (check_in < :check_out AND check_out > :check_in)
+                   )";
+
+$conflict_stmt = $db->prepare($conflict_query);
+$conflict_stmt->bindParam(':room_id', $room_id);
+$conflict_stmt->bindParam(':check_in', $check_in);
+$conflict_stmt->bindParam(':check_out', $check_out);
+$conflict_stmt->execute();
+$conflict_result = $conflict_stmt->fetch(PDO::FETCH_ASSOC);
+
+if($conflict_result['conflict_count'] > 0) {
+    echo json_encode(array('message' => 'Room is already booked for these dates'));
+    exit();
+}
 
 // Create Booking
 $query = 'INSERT INTO bookings SET 
@@ -82,7 +106,14 @@ $stmt->bindParam(':final_price', $final_price);
 $stmt->bindParam(':status', $status);
 
 if($stmt->execute()) {
-    echo json_encode(array('message' => 'Booking Created'));
+    // DO NOT update room status to 'booked' globally. 
+    // Availability is now checked dynamically by date.
+
+    $booking_id = $db->lastInsertId();
+    echo json_encode(array(
+        'message' => 'Booking Created',
+        'booking_id' => $booking_id
+    ));
 } else {
     echo json_encode(array('message' => 'Booking Failed'));
 }

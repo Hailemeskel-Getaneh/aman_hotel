@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Section from "../components/ui/Section";
-import { bookingService } from "../services/api";
+import { bookingService, paymentService } from "../services/api";
 import placeholderImg from '../assets/images/placeholder.png';
 
 export default function MyBookings() {
@@ -40,6 +40,31 @@ export default function MyBookings() {
         fetchBookings();
     }, [user, navigate]);
 
+    const handlePayment = async (bookingId) => {
+        try {
+            // Optimistic UI or specific loading state could be better, but using global loading for safety
+            setLoading(true);
+            const response = await paymentService.initialize(bookingId);
+            if (response.checkout_url) {
+                window.location.href = response.checkout_url;
+            } else {
+                alert(response.message || "Failed to initialize payment. Please try again.");
+                console.error("Payment init failed response:", response);
+                console.log("Full response dump:", JSON.stringify(response, null, 2));
+            }
+        } catch (err) {
+            console.error("Payment initialization error:", err);
+            if (err.response) {
+                 console.error("Error Response Data:", err.response.data);
+                 console.error("Error Response Status:", err.response.status);
+            }
+            const errorMessage = err.response?.data?.message || err.message || "Payment initialization failed.";
+            alert(`Payment Error: ${errorMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
             case 'confirmed':
@@ -61,7 +86,7 @@ export default function MyBookings() {
                 <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-4xl md:text-5xl font-serif font-bold mb-4"
+                    className="text-4xl md:text-5xl font-serif font-bold mb-4 text-white"
                 >
                     My Bookings
                 </motion.h1>
@@ -133,10 +158,33 @@ export default function MyBookings() {
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 border-t border-gray-100">
+
+                                    <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2 justify-between items-center">
                                         <p className="text-xs text-gray-500">
                                             Booked on: {new Date(booking.created_at).toLocaleDateString()}
                                         </p>
+                                        <div className="flex gap-2">
+                                            {(booking.status === 'confirmed' || booking.status === 'completed') && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => navigate(`/receipt/${booking.id}`)}
+                                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-gray-200 transition-colors"
+                                                >
+                                                    View Receipt
+                                                </motion.button>
+                                            )}
+                                            {booking.status === 'pending' && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handlePayment(booking.id)}
+                                                    className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                >
+                                                    Pay Now
+                                                </motion.button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>

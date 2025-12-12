@@ -20,6 +20,10 @@ export const authService = {
         const response = await api.post('/auth/register.php', userData);
         return response.data;
     },
+    searchUsers: async (searchTerm = '') => {
+        const response = await api.get(`/auth/search_users.php?search=${encodeURIComponent(searchTerm)}`);
+        return response.data;
+    },
 };
 
 export const roomService = {
@@ -31,6 +35,18 @@ export const roomService = {
         const response = await api.get(`/rooms/read_single.php?id=${id}`);
         return response.data;
     },
+    getRoomsByType: async (typeId, status = 'available') => {
+        const response = await api.get(`/rooms/read_by_type.php?type_id=${typeId}&status=${status}`);
+        return response.data;
+    },
+    checkAvailability: async (checkIn, checkOut, roomTypeId = '') => {
+        let url = `/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`;
+        if (roomTypeId) {
+            url += `&room_type_id=${roomTypeId}`;
+        }
+        const response = await api.get(url);
+        return response.data;
+    },
     // Admin
     create: async (roomData) => {
         const response = await api.post('/rooms/create.php', roomData);
@@ -40,8 +56,8 @@ export const roomService = {
         const response = await api.put('/rooms/update.php', roomData);
         return response.data;
     },
-    delete: async (roomId) => {
-        const response = await api.post('/rooms/delete.php', { room_id: roomId });
+    delete: async (id) => {
+        const response = await api.delete(`/rooms/delete.php?id=${id}`);
         return response.data;
     }
 };
@@ -59,6 +75,10 @@ export const roomTypeService = {
         const response = await api.get(`/room-types/read_single.php?id=${id}`);
         return response.data;
     },
+    checkAvailability: async (checkIn, checkOut) => {
+        const response = await api.get(`/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`);
+        return response.data;
+    },
     // Admin
     create: async (typeData) => {
         const response = await api.post('/room-types/create.php', typeData);
@@ -68,8 +88,8 @@ export const roomTypeService = {
         const response = await api.put('/room-types/update.php', typeData);
         return response.data;
     },
-    delete: async (typeId) => {
-        const response = await api.post('/room-types/delete.php', { type_id: typeId });
+    delete: async (id) => {
+        const response = await api.delete(`/room-types/delete.php?id=${id}`);
         return response.data;
     }
 };
@@ -90,6 +110,10 @@ export const bookingService = {
     },
     updateStatus: async (id, status) => {
         const response = await api.put('/bookings/update.php', { id, status });
+        return response.data;
+    },
+    getReceipt: async (bookingId) => {
+        const response = await api.get(`/bookings/read_receipt.php?booking_id=${bookingId}`);
         return response.data;
     }
 };
@@ -122,6 +146,17 @@ export const eventService = {
     },
     delete: async (eventId) => {
         const response = await api.post('/events/delete.php', { event_id: eventId });
+        return response.data;
+    }
+};
+
+export const paymentService = {
+    initialize: async (bookingId) => {
+        const response = await api.post('/payment/initialize.php', { booking_id: bookingId });
+        return response.data;
+    },
+    verify: async (txRef) => {
+        const response = await api.post('/payment/verify.php', { tx_ref: txRef });
         return response.data;
     }
 };
