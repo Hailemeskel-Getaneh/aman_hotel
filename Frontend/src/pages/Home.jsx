@@ -69,15 +69,46 @@ export default function Home() {
       }
 
       if (data.data) {
-        const mappedRooms = data.data.slice(0, 3).map(r => ({
-          id: r.room_id,
-          name: r.room_type || r.room_number,
-          price: r.price_per_night,
-          image: getImageForRoomType(r.room_type),
-          short_description: r.description,
-          status: useFilters ? (r.available_for_dates ? 'available' : 'booked') : (r.status || 'available')
-        }));
-        setRooms(mappedRooms);
+        if (useFilters) {
+          // Group by room_type_id
+          const groups = {};
+          data.data.forEach(r => {
+            if (!groups[r.room_type_id]) {
+              groups[r.room_type_id] = {
+                id: r.room_type_id,
+                name: r.room_type,
+                price: r.price_per_night,
+                image: getImageForRoomType(r.room_type),
+                short_description: r.description,
+                available_rooms: 0,
+                total_count: 0
+              };
+            }
+            groups[r.room_type_id].total_count++;
+            if (r.available_for_dates) {
+              groups[r.room_type_id].available_rooms++;
+            }
+          });
+
+          const mappedRooms = Object.values(groups).map(g => ({
+            ...g,
+            status: g.available_rooms > 0 ? 'available' : 'booked'
+          }));
+          setRooms(mappedRooms);
+
+        } else {
+          // Default: Show top 3 distinct room types (or just top 3 rooms but mapped to type)
+          // We map to type_id to ensure booking link works
+          const mappedRooms = data.data.slice(0, 3).map(r => ({
+            id: r.room_type_id,
+            name: r.room_type,
+            price: r.price_per_night,
+            image: getImageForRoomType(r.room_type),
+            short_description: r.description,
+            status: r.status || 'available'
+          }));
+          setRooms(mappedRooms);
+        }
       }
     } catch (err) {
       console.error("Error fetching rooms:", err);
@@ -97,11 +128,21 @@ export default function Home() {
       alert('Please select both check-in and check-out dates');
     }
   };
+  const dateFilterRef = React.useRef(null);
+  const checkInInputRef = React.useRef(null);
 
-  const handleClearDates = () => {
-    setCheckIn('');
-    setCheckOut('');
-    fetchRooms(false);
+  const handleDateRequired = () => {
+    if (dateFilterRef.current) {
+      dateFilterRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Cleanest way to focus: wait slightly for scroll
+      setTimeout(() => {
+        if (checkInInputRef.current) {
+          checkInInputRef.current.focus();
+          checkInInputRef.current.click(); // Open picker if supported
+        }
+      }, 500);
+      alert('Please select your check-in and check-out dates first to see availability.');
+    }
   };
 
 
@@ -184,8 +225,8 @@ export default function Home() {
       </Section>
 
       {/* Date Filter Section */}
-      <Section className="bg-primary-900 text-white">
-        <div className="max-w-4xl mx-auto">
+      <Section className="bg-primary-900 text-white" id="date-filter">
+        <div ref={dateFilterRef} className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-white">Check Availability</h2>
             <p className="text-gray-300">Select your dates to see available rooms</p>
@@ -196,6 +237,7 @@ export default function Home() {
               <div>
                 <label className="block text-sm font-medium mb-2 text-white">Check-in Date</label>
                 <input
+                  ref={checkInInputRef}
                   type="date"
                   value={checkIn}
                   onChange={(e) => setCheckIn(e.target.value)}
@@ -248,7 +290,9 @@ export default function Home() {
       <Section className="bg-gray-50">
         <div className="flex justify-between items-end mb-12">
           <div>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-900 mb-4">Featured Rooms</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-900 mb-4">
+              {dateFilterActive ? "Available Rooms" : "Featured Rooms"}
+            </h2>
             <p className="text-gray-600">Discover our most popular accommodations</p>
           </div>
           <Link to="/rooms" className="hidden md:flex items-center text-secondary font-medium hover:text-primary-700 transition-colors">
@@ -261,7 +305,14 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {rooms.map(room => (
-              <RoomCard key={room.id} room={room} user={user} />
+              <RoomCard
+                key={room.id}
+                room={room}
+                user={user}
+                checkIn={dateFilterActive ? checkIn : ''}
+                checkOut={dateFilterActive ? checkOut : ''}
+                onDateRequired={handleDateRequired}
+              />
             ))}
           </div>
         )}

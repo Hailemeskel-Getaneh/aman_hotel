@@ -40,7 +40,7 @@ export const roomService = {
         return response.data;
     },
     checkAvailability: async (checkIn, checkOut, roomTypeId = '') => {
-        let url = `/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`;
+        let url = `/rooms/check_availability_new.php?check_in=${checkIn}&check_out=${checkOut}`;
         if (roomTypeId) {
             url += `&room_type_id=${roomTypeId}`;
         }
@@ -76,7 +76,7 @@ export const roomTypeService = {
         return response.data;
     },
     checkAvailability: async (checkIn, checkOut) => {
-        const response = await api.get(`/rooms/check_availability.php?check_in=${checkIn}&check_out=${checkOut}`);
+        const response = await api.get(`/rooms/check_availability_new.php?check_in=${checkIn}&check_out=${checkOut}`);
         return response.data;
     },
     // Admin

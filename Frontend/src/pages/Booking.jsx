@@ -7,6 +7,8 @@ export default function BookingPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const roomTypeIdFromUrl = searchParams.get("roomTypeId");
+    const checkInIdx = searchParams.get("checkIn");
+    const checkOutIdx = searchParams.get("checkOut");
 
     // Check if user is logged in
     const user = JSON.parse(localStorage.getItem("user"));
@@ -19,8 +21,8 @@ export default function BookingPage() {
     }, [user, navigate]);
 
     const [form, setForm] = useState({
-        checkin: "",
-        checkout: "",
+        checkin: checkInIdx || "",
+        checkout: checkOutIdx || "",
         guests: 1,
         selectedRoomId: "",
     });
@@ -46,8 +48,21 @@ export default function BookingPage() {
                     setRoomTypeName(typeData.data.type_name);
                 }
 
-                // Fetch available rooms for this type
-                const roomsData = await roomService.getRoomsByType(roomTypeIdFromUrl, 'available');
+
+                let roomsData;
+                if (form.checkin && form.checkout) {
+                    // Check availability for specific dates if provided
+                    roomsData = await roomService.checkAvailability(form.checkin, form.checkout, roomTypeIdFromUrl);
+                    // Filter to ensure we only get rooms that are truly available for these dates
+                    if (roomsData.data) {
+                        roomsData.data = roomsData.data.filter(r => r.available_for_dates);
+                    }
+                    setIsDatesValid(true);
+                } else {
+                    // Check general availability
+                    roomsData = await roomService.getRoomsByType(roomTypeIdFromUrl, 'available');
+                }
+
 
                 if (roomsData.data && roomsData.data.length > 0) {
                     setAvailableRooms(roomsData.data);
@@ -64,7 +79,7 @@ export default function BookingPage() {
         };
 
         fetchAvailableRooms();
-    }, [roomTypeIdFromUrl]);
+    }, [roomTypeIdFromUrl, form.checkin, form.checkout]); // Re-run if params or dates change (though typically dates set once on load)
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
