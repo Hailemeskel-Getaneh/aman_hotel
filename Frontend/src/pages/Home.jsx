@@ -5,6 +5,7 @@ import { ArrowRight, Star, Wifi, Coffee, MapPin } from "lucide-react";
 import Button from "../components/ui/Button";
 import Section from "../components/ui/Section";
 import RoomCard from "../components/RoomCard";
+import Testimonials from "../components/Testimonials";
 import { roomService } from "../services/api";
 
 // Import slider images
@@ -323,6 +324,9 @@ export default function Home() {
           </Link>
         </div>
       </Section>
+
+      {/* Testimonials Section */}
+      <Testimonials />
     </main>
   );
 }
