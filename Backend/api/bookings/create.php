@@ -60,6 +60,27 @@ $discount_rate = isset($data->discount_rate) ? $data->discount_rate : 0.00;
 $final_price = $base_price - ($base_price * ($discount_rate / 100));
 $status = 'pending';
 
+// Check for conflicting bookings
+$conflict_query = "SELECT COUNT(*) as conflict_count 
+                   FROM bookings 
+                   WHERE room_id = :room_id 
+                   AND status IN ('pending', 'confirmed') 
+                   AND (
+                        (check_in < :check_out AND check_out > :check_in)
+                   )";
+
+$conflict_stmt = $db->prepare($conflict_query);
+$conflict_stmt->bindParam(':room_id', $room_id);
+$conflict_stmt->bindParam(':check_in', $check_in);
+$conflict_stmt->bindParam(':check_out', $check_out);
+$conflict_stmt->execute();
+$conflict_result = $conflict_stmt->fetch(PDO::FETCH_ASSOC);
+
+if($conflict_result['conflict_count'] > 0) {
+    echo json_encode(array('message' => 'Room is already booked for these dates'));
+    exit();
+}
+
 // Create Booking
 $query = 'INSERT INTO bookings SET 
     user_id = :user_id, 
@@ -85,14 +106,9 @@ $stmt->bindParam(':final_price', $final_price);
 $stmt->bindParam(':status', $status);
 
 if($stmt->execute()) {
-    // Update room status to 'booked'
-    $update_query = 'UPDATE rooms SET status = :status WHERE room_id = :room_id';
-    $update_stmt = $db->prepare($update_query);
-    $booked_status = 'booked';
-    $update_stmt->bindParam(':status', $booked_status);
-    $update_stmt->bindParam(':room_id', $room_id);
-    $update_stmt->execute();
-    
+    // DO NOT update room status to 'booked' globally. 
+    // Availability is now checked dynamically by date.
+
     $booking_id = $db->lastInsertId();
     echo json_encode(array(
         'message' => 'Booking Created',

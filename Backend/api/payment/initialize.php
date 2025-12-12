@@ -48,6 +48,11 @@ $amount = $booking['final_price'];
 $currency = 'ETB';
 $email = trim($booking['email']); // Critical: Remove whitespace
 
+// Ensure logs directory exists
+if (!file_exists('../../logs')) {
+    mkdir('../../logs', 0777, true);
+}
+
 // Split First and Last Name
 $parts = explode(' ', trim($booking['user_name']));
 $first_name = $parts[0];
@@ -97,6 +102,7 @@ if (curl_errno($ch)) {
         'message' => 'Payment Initialization Connection Failed',
         'error' => curl_error($ch)
     ]);
+    file_put_contents('../../logs/payment_debug.log', date('Y-m-d H:i:s') . " Curl Error: " . curl_error($ch) . "\n", FILE_APPEND);
     curl_close($ch);
     exit();
 }

@@ -40,7 +40,13 @@ WHERE r.room_type_id = :type_id';
 
 // Add status filter if specified
 if ($status !== 'all') {
-    $query .= ' AND r.status = :status';
+    if ($status === 'available') {
+        // If requesting 'available', we just want rooms that are NOT in maintenance.
+        // We don't care if they are 'booked' for *some* dates, as long as they aren't out of order.
+        $query .= " AND r.status != 'maintenance'";
+    } else {
+        $query .= ' AND r.status = :status';
+    }
 }
 
 $query .= ' ORDER BY r.room_number';
@@ -50,7 +56,7 @@ $stmt = $db->prepare($query);
 
 // Bind parameters
 $stmt->bindParam(':type_id', $type_id, PDO::PARAM_INT);
-if ($status !== 'all') {
+if ($status !== 'all' && $status !== 'available') {
     $stmt->bindParam(':status', $status);
 }
 

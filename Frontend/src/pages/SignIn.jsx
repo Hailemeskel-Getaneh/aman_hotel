@@ -62,7 +62,7 @@ export default function SignIn() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <button type="submit">Sign In</button>
+                <button className="bg-blue-900 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" type="submit">Sign In</button>
             </form>
 
             <p>

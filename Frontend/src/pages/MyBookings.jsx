@@ -50,9 +50,14 @@ export default function MyBookings() {
             } else {
                 alert(response.message || "Failed to initialize payment. Please try again.");
                 console.error("Payment init failed response:", response);
+                console.log("Full response dump:", JSON.stringify(response, null, 2));
             }
         } catch (err) {
             console.error("Payment initialization error:", err);
+            if (err.response) {
+                 console.error("Error Response Data:", err.response.data);
+                 console.error("Error Response Status:", err.response.status);
+            }
             const errorMessage = err.response?.data?.message || err.message || "Payment initialization failed.";
             alert(`Payment Error: ${errorMessage}`);
         } finally {
