@@ -4,18 +4,33 @@ import { motion } from "framer-motion";
 import Button from "./ui/Button";
 import placeholderImg from '../assets/images/placeholder.png';
 
-export default function RoomCard({ room, user }) {
+export default function RoomCard({ room, user, checkIn, checkOut, onDateRequired }) {
     const isAvailable = room.status?.toLowerCase() === 'available';
 
+    const getBookingUrl = () => {
+        let url = `/booking?roomTypeId=${room.id}`;
+        if (checkIn) url += `&checkIn=${checkIn}`;
+        if (checkOut) url += `&checkOut=${checkOut}`;
+        return url;
+    };
+
     const handleBookNowClick = (e) => {
+        if (!checkIn || !checkOut) {
+            e.preventDefault();
+            if (onDateRequired) onDateRequired();
+            return;
+        }
+
         if (!user && isAvailable) {
             // Save the intended booking URL before redirecting to sign-in
-            const bookingUrl = `/booking?roomTypeId=${room.id}`;
+            const bookingUrl = getBookingUrl();
             localStorage.setItem('redirectAfterLogin', bookingUrl);
         }
     };
 
-    const linkTarget = user && isAvailable ? `/booking?roomTypeId=${room.id}` : (isAvailable ? "/signin" : "#");
+    const linkTarget = (checkIn && checkOut)
+        ? (user && isAvailable ? getBookingUrl() : (isAvailable ? "/signin" : "#"))
+        : "#";
 
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -32,6 +47,9 @@ export default function RoomCard({ room, user }) {
     };
 
     const getButtonText = () => {
+        if (!checkIn || !checkOut) {
+            return "Check Availability";
+        }
         if (!isAvailable) {
             return room.status?.toLowerCase() === 'maintenance' ? 'Under Maintenance' : 'Unavailable';
         }
@@ -43,10 +61,17 @@ export default function RoomCard({ room, user }) {
             return 'Fully Booked';
         }
         if (room.available_rooms !== undefined) {
-            return `${room.available_rooms} Available`;
+            // If specifically checking availability (filtered), show "Available" if count > 0
+            return room.available_rooms > 0 ? 'Available' : 'Fully Booked';
         }
         return room.status?.charAt(0).toUpperCase() + room.status?.slice(1) || 'Available';
     };
+
+    // Override isAvailable if we have explicit available_rooms counts from a filter
+    const displayIsAvailable = room.available_rooms !== undefined
+        ? room.available_rooms > 0
+        : isAvailable;
+
 
     return (
         <motion.article
@@ -54,7 +79,7 @@ export default function RoomCard({ room, user }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className={`group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 ${!isAvailable ? 'opacity-75' : ''}`}
+            className={`group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 ${!displayIsAvailable ? 'opacity-75' : ''}`}
         >
             <div className="relative h-64 overflow-hidden">
                 <img
@@ -63,12 +88,14 @@ export default function RoomCard({ room, user }) {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => { e.target.src = placeholderImg; }}
                 />
-                <div className={`absolute inset-0 transition-colors ${!isAvailable ? 'bg-black/40' : 'bg-black/20 group-hover:bg-black/10'}`} />
+                <div className={`absolute inset-0 transition-colors ${!displayIsAvailable ? 'bg-black/40' : 'bg-black/20 group-hover:bg-black/10'}`} />
 
-                {/* Status Badge */}
-                <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(room.status)}`}>
-                    {getStatusText()}
-                </div>
+                {/* Status Badge - Only show if dates are selected */}
+                {checkIn && checkOut && (
+                    <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(room.status)}`}>
+                        {getStatusText()}
+                    </div>
+                )}
 
                 <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-bold text-primary-900 shadow-sm">
                     ${room.price} <span className="text-xs font-normal text-gray-600">/ night</span>
@@ -79,7 +106,7 @@ export default function RoomCard({ room, user }) {
                 <h3 className="text-xl font-serif font-bold text-primary-900 mb-2">{room.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{room.short_description}</p>
 
-                {isAvailable ? (
+                {(displayIsAvailable || (!checkIn || !checkOut)) ? (
                     <Link to={linkTarget} className="block w-full" onClick={handleBookNowClick}>
                         <Button variant="primary" className="w-full text-white bg-blue-900">
                             {getButtonText()}
