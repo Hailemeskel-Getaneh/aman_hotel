@@ -123,6 +123,22 @@ export default function Rooms() {
         fetchRoomTypes(false);
     };
 
+    const dateFilterRef = React.useRef(null);
+    const checkInInputRef = React.useRef(null);
+
+    const handleDateRequired = () => {
+        if (dateFilterRef.current) {
+            dateFilterRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (checkInInputRef.current) {
+                    checkInInputRef.current.focus();
+                    checkInInputRef.current.click();
+                }
+            }, 500);
+            alert('Please select your check-in and check-out dates first to see availability.');
+        }
+    };
+
 
     return (
         <main className="bg-background min-h-screen pt-20"> {/* pt-20 to account for fixed navbar */}
@@ -139,12 +155,13 @@ export default function Rooms() {
                 </p>
 
                 {/* Date Filter */}
-                <div className="max-w-4xl mx-auto mt-10">
+                <div ref={dateFilterRef} className="max-w-4xl mx-auto mt-10">
                     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                             <div>
                                 <label className="block text-sm font-medium mb-2 text-white">Check-in Date</label>
                                 <input
+                                    ref={checkInInputRef}
                                     type="date"
                                     value={checkIn}
                                     onChange={(e) => setCheckIn(e.target.value)}
@@ -201,7 +218,14 @@ export default function Rooms() {
                 {!loading && !error && roomTypes.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {roomTypes.map(room => (
-                            <RoomCard key={room.id} room={room} user={user} />
+                            <RoomCard
+                                key={room.id}
+                                room={room}
+                                user={user}
+                                checkIn={dateFilterActive ? checkIn : ''}
+                                checkOut={dateFilterActive ? checkOut : ''}
+                                onDateRequired={handleDateRequired}
+                            />
                         ))}
                     </div>
                 )}
