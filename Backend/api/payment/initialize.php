@@ -62,6 +62,8 @@ $payload = [
     'tx_ref' => $tx_ref,
     'callback_url' => $chapaConfig['callback_url'], 
     'return_url' => $chapaConfig['return_url'] . '?tx_ref=' . $tx_ref,
+    'return_url' => $chapaConfig['return_url'] . '?tx_ref=' . $tx_ref,
+    'cancel_url' => (isset($chapaConfig['cancel_url']) ? $chapaConfig['cancel_url'] : $chapaConfig['return_url']) . '?booking_id=' . $booking_id,
     "customization" => [
         "title" => "Booking Payment",
         "description" => "Payment for Booking " . $booking_id

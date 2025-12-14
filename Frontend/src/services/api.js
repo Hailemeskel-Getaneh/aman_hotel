@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Base URL for the PHP Backend
 // Adjust if your XAMPP path is different
-const API_URL = 'http://localhost/Aman-Hotel/Backend/api';
+const API_URL = 'http://localhost/aman_hotel/Backend/api';
 
 const api = axios.create({
     baseURL: API_URL,

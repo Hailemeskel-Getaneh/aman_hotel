@@ -60,6 +60,26 @@ export default function MyBookings() {
         }
     };
 
+    const handleCancel = async (bookingId) => {
+        if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+
+        try {
+            setLoading(true);
+            await bookingService.cancel(bookingId);
+
+            // Refresh bookings
+            const data = await bookingService.getUserBookings(user.id);
+            if (data.data) setBookings(data.data);
+            else setBookings([]);
+
+        } catch (err) {
+            console.error("Cancellation error:", err);
+            alert("Failed to cancel booking.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
             case 'confirmed':
@@ -159,14 +179,24 @@ export default function MyBookings() {
                                             Booked on: {new Date(booking.created_at).toLocaleDateString()}
                                         </p>
                                         {booking.status === 'pending' && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => handlePayment(booking.id)}
-                                                className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
-                                            >
-                                                Pay Now
-                                            </motion.button>
+                                            <div className="flex gap-2">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handleCancel(booking.id)}
+                                                    className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                >
+                                                    Cancel
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handlePayment(booking.id)}
+                                                    className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                >
+                                                    Pay Now
+                                                </motion.button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
