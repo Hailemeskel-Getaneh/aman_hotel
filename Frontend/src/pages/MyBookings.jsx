@@ -70,6 +70,12 @@ export default function MyBookings() {
 
         try {
             setLoading(true);
+<<<<<<< HEAD
+=======
+            // We can add a cancel method to bookingService or call api directly here
+            // For now, let's assume we'll add it to bookingService or use raw axios if simplest
+            // But let's stick to the pattern and use bookingService
+>>>>>>> feature/hailemeskel
             await bookingService.cancel(bookingId);
 
             // Refresh bookings
@@ -183,6 +189,7 @@ export default function MyBookings() {
                                         <p className="text-xs text-gray-500">
                                             Booked on: {new Date(booking.created_at).toLocaleDateString()}
                                         </p>
+<<<<<<< HEAD
                                         <div className="flex gap-2">
                                             {(booking.status === 'confirmed' || booking.status === 'completed') && (
                                                 <motion.button
@@ -215,6 +222,28 @@ export default function MyBookings() {
                                                 </>
                                             )}
                                         </div>
+=======
+                                        {booking.status === 'pending' && (
+                                            <div className="flex gap-2">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handleCancel(booking.id)}
+                                                    className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                >
+                                                    Cancel
+                                                </motion.button>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => handlePayment(booking.id)}
+                                                    className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                >
+                                                    Pay Now
+                                                </motion.button>
+                                            </div>
+                                        )}
+>>>>>>> feature/hailemeskel
                                     </div>
                                 </div>
                             </motion.div>

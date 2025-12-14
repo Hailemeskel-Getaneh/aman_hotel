@@ -103,6 +103,10 @@ export const bookingService = {
         const response = await api.get(`/bookings/read_user.php?user_id=${userId}`);
         return response.data;
     },
+    cancel: async (bookingId) => {
+        const response = await api.post('/bookings/cancel.php', { id: bookingId });
+        return response.data;
+    },
     // Admin
     getAll: async () => {
         const response = await api.get('/bookings/read_all.php');
