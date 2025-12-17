@@ -25,8 +25,8 @@ $query = "SELECT
             rt.type_name as room_type
           FROM bookings b
           JOIN users u ON b.user_id = u.id
-          JOIN rooms r ON b.room_id = r.room_id
-          JOIN room_types rt ON r.room_type_id = rt.type_id
+          LEFT JOIN rooms r ON b.room_id = r.room_id
+          LEFT JOIN room_types rt ON rt.type_id = COALESCE(b.room_type_id, r.room_type_id)
           WHERE b.id = :booking_id";
 
 // Prepare statement

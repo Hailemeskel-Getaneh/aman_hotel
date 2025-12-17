@@ -29,33 +29,19 @@ const PaymentFailed = () => {
     }, [bookingId]);
 
     return (
-<<<<<<< HEAD
-        <div className="booking-container" style={{ textAlign: 'center', marginTop: '50px' }}>
-            <h2 style={{ color: 'red' }}>❌ Payment Cancelled/Failed</h2>
-            <p>The payment process was not completed.</p>
-
-            {bookingId && (
-                <p style={{ color: '#666', margin: '1rem 0', fontStyle: 'italic' }}>
-                    {status}
-                </p>
-            )}
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
-                <button className="book-btn" onClick={() => navigate('/my-bookings')}>
-                    My Bookings
-                </button>
-                <button className="book-btn" style={{ backgroundColor: '#666' }} onClick={() => navigate('/')}>
-                    Back to Home
-                </button>
-=======
         <div className="flex flex-col items-center justify-center min-h-[60vh] mt-20 px-4">
             <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full border border-gray-100">
                 <div className="text-red-500 text-6xl mb-4">🚫</div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Cancelled</h2>
-                <p className="text-gray-600 mb-8">
-                    You cancelled the payment process. No charges were made.
-                    You can retry payment from your bookings page.
+                <p className="text-gray-600 mb-4">
+                    The payment process was not completed. No charges were made.
                 </p>
+
+                {bookingId && status && (
+                    <p className="text-gray-500 italic mb-6 text-sm bg-gray-50 p-2 rounded">
+                        {status}
+                    </p>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <button
@@ -71,7 +57,6 @@ const PaymentFailed = () => {
                         Return Home
                     </button>
                 </div>
->>>>>>> feature/hailemeskel
             </div>
         </div>
     );

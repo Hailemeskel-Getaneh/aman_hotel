@@ -34,7 +34,7 @@ $query = 'SELECT
         WHEN EXISTS (
             SELECT 1 FROM bookings b
             WHERE b.room_id = r.room_id
-            AND b.status IN ("confirmed", "pending")
+            AND b.status = "confirmed"
             AND b.check_in < :check_out
             AND b.check_out > :check_in
         ) THEN 0

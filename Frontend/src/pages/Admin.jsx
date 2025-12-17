@@ -743,7 +743,17 @@ function AdminEvents() {
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
-        event_id: null, title: '', description: '', location: '', start_time: '', organizer_id: 1 // Default admin
+        event_id: null,
+        title: '',
+        description: '',
+        location: '',
+        start_time: '',
+        end_time: '',
+        organizer_id: 1, // Default admin
+        vip_capacity: 0,
+        regular_capacity: 0,
+        vip_price: 0,
+        regular_price: 0
     });
 
     useEffect(() => {
@@ -770,7 +780,19 @@ function AdminEvents() {
     };
 
     const handleAdd = () => {
-        setFormData({ event_id: null, title: '', description: '', location: '', start_time: '', organizer_id: 1 });
+        setFormData({
+            event_id: null,
+            title: '',
+            description: '',
+            location: '',
+            start_time: '',
+            end_time: '',
+            organizer_id: 1,
+            vip_capacity: 0,
+            regular_capacity: 0,
+            vip_price: 0,
+            regular_price: 0
+        });
         setIsEditing(false);
         setShowModal(true);
     };
@@ -798,6 +820,7 @@ function AdminEvents() {
                             <th>Title</th>
                             <th>Date</th>
                             <th>Location</th>
+                            <th>Tickets</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -807,6 +830,10 @@ function AdminEvents() {
                                 <td>{ev.title}</td>
                                 <td>{new Date(ev.start_time).toLocaleDateString()}</td>
                                 <td>{ev.location}</td>
+                                <td>
+                                    <small>Reg: {ev.regular_capacity || 0} (${ev.regular_price || 0})</small><br />
+                                    <small>VIP: {ev.vip_capacity || 0} (${ev.vip_price || 0})</small>
+                                </td>
                                 <td>
                                     <button className="action-btn btn-edit" onClick={() => handleEdit(ev)}>Edit</button>
                                     <button className="action-btn btn-delete" onClick={() => handleDelete(ev.event_id)}>Delete</button>
@@ -819,24 +846,52 @@ function AdminEvents() {
 
             {showModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-content" style={{ maxWidth: '600px' }}>
                         <h3>{isEditing ? 'Edit Event' : 'Add Event'}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Title</label>
                                 <input required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
                             </div>
-                            <div className="form-group">
-                                <label>Date & Time</label>
-                                <input type="datetime-local" required value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })} />
+
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Start Time</label>
+                                    <input type="datetime-local" required value={formData.start_time} onChange={e => setFormData({ ...formData, start_time: e.target.value })} />
+                                </div>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>End Time</label>
+                                    <input type="datetime-local" value={formData.end_time || ''} onChange={e => setFormData({ ...formData, end_time: e.target.value })} />
+                                </div>
                             </div>
+
                             <div className="form-group">
                                 <label>Location</label>
                                 <input required value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
                             </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: '#f8f9fa', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
+                                <div className="form-group">
+                                    <label>Regular Capacity</label>
+                                    <input type="number" value={formData.regular_capacity} onChange={e => setFormData({ ...formData, regular_capacity: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Regular Price ($)</label>
+                                    <input type="number" step="0.01" value={formData.regular_price} onChange={e => setFormData({ ...formData, regular_price: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>VIP Capacity</label>
+                                    <input type="number" value={formData.vip_capacity} onChange={e => setFormData({ ...formData, vip_capacity: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>VIP Price ($)</label>
+                                    <input type="number" step="0.01" value={formData.vip_price} onChange={e => setFormData({ ...formData, vip_price: e.target.value })} />
+                                </div>
+                            </div>
+
                             <div className="form-group">
                                 <label>Description</label>
-                                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
+                                <textarea style={{ height: '100px' }} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                 <button type="button" onClick={() => setShowModal(false)}>Cancel</button>

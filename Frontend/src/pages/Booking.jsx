@@ -24,18 +24,19 @@ export default function BookingPage() {
         checkin: checkInIdx || "",
         checkout: checkOutIdx || "",
         guests: 1,
-        selectedRoomId: "",
+        roomCount: 1,
+        selectedRoomId: "", // Optional now if roomCount > 1
     });
 
     const [availableRooms, setAvailableRooms] = useState([]);
     const [roomTypeName, setRoomTypeName] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isDatesValid, setIsDatesValid] = useState(false);
+    // Removed isDatesValid two-step logic
     const [error, setError] = useState("");
 
-    // Fetch available rooms when component mounts or roomTypeId changes
+    // Fetch available room COUNT when inputs change
     useEffect(() => {
-        const fetchAvailableRooms = async () => {
+        const fetchDetails = async () => {
             if (!roomTypeIdFromUrl) return;
 
             setLoading(true);
@@ -48,49 +49,44 @@ export default function BookingPage() {
                     setRoomTypeName(typeData.data.type_name);
                 }
 
-
                 let roomsData;
                 if (form.checkin && form.checkout) {
-                    // Check availability for specific dates if provided
+                    // Check availability for specific dates
                     roomsData = await roomService.checkAvailability(form.checkin, form.checkout, roomTypeIdFromUrl);
-                    // Filter to ensure we only get rooms that are truly available for these dates
                     if (roomsData.data) {
                         roomsData.data = roomsData.data.filter(r => r.available_for_dates);
                     }
-                    setIsDatesValid(true);
                 } else {
-                    // Check general availability
+                    // General availability
                     roomsData = await roomService.getRoomsByType(roomTypeIdFromUrl, 'available');
                 }
 
-
-                if (roomsData.data && roomsData.data.length > 0) {
+                if (roomsData.data) {
                     setAvailableRooms(roomsData.data);
                 } else {
                     setAvailableRooms([]);
-                    setError("No available rooms for this room type at the moment.");
                 }
+
             } catch (err) {
                 console.error("Error fetching available rooms:", err);
-                setError("Failed to load available rooms.");
+                setError("Failed to load availability.");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchAvailableRooms();
-    }, [roomTypeIdFromUrl, form.checkin, form.checkout]); // Re-run if params or dates change (though typically dates set once on load)
+        fetchDetails();
+    }, [roomTypeIdFromUrl, form.checkin, form.checkout]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
-        setIsDatesValid(false); // reset if user changes inputs
     };
 
-    const checkAvailability = (e) => {
+    const handleBooking = async (e) => {
         e.preventDefault();
         setError("");
 
-        // Simple client-side date validation
+        // Validation
         if (!form.checkin || !form.checkout) {
             setError("Please select dates.");
             return;
@@ -104,73 +100,57 @@ export default function BookingPage() {
             return;
         }
 
-        if (!form.selectedRoomId) {
-            setError("Please select a room.");
+        const requestedRooms = parseInt(form.roomCount);
+        if (availableRooms.length < requestedRooms) {
+            setError(`Only ${availableRooms.length} room${availableRooms.length !== 1 ? 's' : ''} available for these dates.`);
             return;
         }
 
-        // In a real app, we'd check against backend availability for the specific dates here.
-        // For now, we assume available if dates are valid and room is selected.
-        setIsDatesValid(true);
-    };
-
-    const handleBooking = async () => {
-        if (!isDatesValid) return;
-
-        if (!form.selectedRoomId) {
-            setError("Please select a room.");
-            return;
-        }
+        setLoading(true);
 
         try {
-            // Verify the room is still available
-            const roomData = await roomService.getSingle(form.selectedRoomId);
+            // Use createMultiple endpoint
+            // We pass room_type_id instead of room_id
 
-            if (!roomData.data) {
-                setError("Room not found.");
-                return;
-            }
-
-            const roomStatus = roomData.data.status?.toLowerCase();
-
-            if (roomStatus !== 'available') {
-                setError(`This room is currently ${roomStatus}. Please select another room.`);
-                return;
-            }
-
-            // Proceed with booking if room is available
             const bookingData = {
                 user_id: user.id,
-                room_id: form.selectedRoomId,
+                room_type_id: roomTypeIdFromUrl,
                 check_in: form.checkin,
-                check_out: form.checkout
+                check_out: form.checkout,
+                count: requestedRooms
             };
 
-            const data = await bookingService.create(bookingData);
+            const data = await bookingService.createMultiple(bookingData);
 
-            if (data.message === "Booking Created" && data.booking_id) {
-                // Initialize Payment
-                try {
-                    const paymentData = await paymentService.initialize(data.booking_id);
-                    if (paymentData.checkout_url) {
-                        window.location.href = paymentData.checkout_url;
-                    } else {
-                        // Debugging: Show exactly what was returned
-                        console.log("PAYMENT INIT FAILED DATA:", paymentData);
-                        alert("Payment Init Failed. Response: " + JSON.stringify(paymentData));
-                        navigate("/my-bookings");
+            if (data.message === "Bookings Created" && data.booking_ids && data.booking_ids.length > 0) {
+                // Success
+                // Handle Payment for FIRST booking or redirect to my bookings
+                // For MVP, redirect to My Bookings with message
+
+                // Or try to pay for the first one?
+                if (requestedRooms === 1 && data.booking_ids.length === 1) {
+                    try {
+                        const paymentData = await paymentService.initialize(data.booking_ids[0]);
+                        if (paymentData.checkout_url) {
+                            window.location.href = paymentData.checkout_url;
+                            return;
+                        }
+                    } catch (payErr) {
+                        console.error("Payment init error", payErr);
                     }
-                } catch (payErr) {
-                    console.error("Payment initialization error:", payErr);
-                    alert("Payment Error: " + (payErr.response?.data?.message || payErr.message));
-                    navigate("/my-bookings");
                 }
+
+                alert(`Successfully booked ${requestedRooms} room(s)! Please proceed to payment in "My Bookings".`);
+                navigate("/my-bookings");
+
             } else {
                 setError(data.message || "Booking failed.");
             }
         } catch (err) {
             console.error(err);
             setError("Server error during booking.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -178,16 +158,10 @@ export default function BookingPage() {
         <div className="booking-container">
             <h2>Book Your Room</h2>
 
-            {roomTypeName && (
-                <p style={{ textAlign: 'center', fontSize: '1.1rem', marginBottom: '1rem', color: '#333' }}>
-                    Room Type: <strong>{roomTypeName}</strong>
-                </p>
-            )}
-
             {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-            {loading && <p style={{ textAlign: 'center' }}>Loading available rooms...</p>}
+            {loading && <p style={{ textAlign: 'center' }}>Processing...</p>}
 
-            <form className="booking-form" onSubmit={checkAvailability}>
+            <form className="booking-form" onSubmit={handleBooking}>
                 <div className="form-group">
                     <label>Check-In Date</label>
                     <input
@@ -226,39 +200,66 @@ export default function BookingPage() {
                 </div>
 
                 <div className="form-group">
-                    <label>Select Room Number</label>
+                    <label>Number of Rooms</label>
                     <select
-                        name="selectedRoomId"
-                        value={form.selectedRoomId}
+                        name="roomCount"
+                        value={form.roomCount}
                         onChange={handleChange}
                         required
-                        disabled={loading || availableRooms.length === 0}
+                        disabled={loading}
                     >
-                        <option value="">-- Select a Room --</option>
-                        {availableRooms.map((room) => (
-                            <option key={room.room_id} value={room.room_id}>
-                                Room {room.room_number} - ${room.price_per_night}/night
-                            </option>
+                        {Array.from({ length: Math.min(5, availableRooms.length || 1) }, (_, i) => i + 1).map(num => (
+                            <option key={num} value={num}>{num} Room{num > 1 ? 's' : ''}</option>
                         ))}
                     </select>
                     {availableRooms.length > 0 && (
                         <small style={{ color: '#666', fontSize: '0.85rem' }}>
-                            {availableRooms.length} room{availableRooms.length !== 1 ? 's' : ''} available
+                            {availableRooms.length} room{availableRooms.length !== 1 ? 's' : ''} available total
                         </small>
                     )}
                 </div>
 
-                <button type="submit" className="book-btn">
-                    Check Details
-                </button>
-            </form>
+                {/* Price Display */}
+                {form.checkin && form.checkout && availableRooms.length > 0 && (
+                    <div className="price-summary" style={{
+                        background: '#f8f9fa',
+                        padding: '15px',
+                        borderRadius: '8px',
+                        marginBottom: '20px',
+                        border: '1px solid #e9ecef'
+                    }}>
+                        <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', color: '#1a1a1a' }}>Price Summary</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
+                            <span>Room Type:</span>
+                            <span style={{ fontWeight: '600', color: '#1a1a1a' }}>{roomTypeName || availableRooms[0]?.room_type || 'N/A'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
+                            <span>Price per night:</span>
+                            <span>${availableRooms[0]?.price_per_night}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
+                            <span>Nights:</span>
+                            <span>{Math.max(0, Math.ceil((new Date(form.checkout) - new Date(form.checkin)) / (1000 * 60 * 60 * 24)))}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#666' }}>
+                            <span>Rooms:</span>
+                            <span>{form.roomCount}</span>
+                        </div>
+                        <div style={{ borderTop: '1px solid #ddd', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: '#000' }}>
+                            <span>Total Price:</span>
+                            <span>${(
+                                (availableRooms[0]?.price_per_night || 0) *
+                                Math.max(0, Math.ceil((new Date(form.checkout) - new Date(form.checkin)) / (1000 * 60 * 60 * 24))) *
+                                form.roomCount
+                            ).toFixed(2)}</span>
+                        </div>
+                    </div>
+                )}
 
-            {/* Show Proceed Button Only if Valid */}
-            {isDatesValid && (
-                <button className="book-btn proceed-btn" onClick={handleBooking}>
+                <button type="submit" className="book-btn proceed-btn" disabled={loading}>
                     Confirm Booking
                 </button>
-            )}
+            </form>
         </div>
     );
 }

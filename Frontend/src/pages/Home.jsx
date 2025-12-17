@@ -146,6 +146,14 @@ export default function Home() {
     }
   };
 
+  const handleClearDates = () => {
+    setCheckIn('');
+    setCheckOut('');
+    setDateFilterActive(false);
+    fetchRooms(false);
+  };
+
+
 
   return (
     <main className="bg-background min-h-screen">
@@ -229,7 +237,7 @@ export default function Home() {
       <Section className="bg-primary-900 text-white" id="date-filter">
         <div ref={dateFilterRef} className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-white">Check Availability</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-white">Available</h2>
             <p className="text-gray-300">Select your dates to see available rooms</p>
           </div>
 

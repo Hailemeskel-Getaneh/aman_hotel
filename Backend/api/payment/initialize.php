@@ -19,34 +19,71 @@ $db = $database->connect();
 // Get raw posted data
 $data = json_decode(file_get_contents("php://input"));
 
-if(!isset($data->booking_id)) {
-    echo json_encode(array('message' => 'Booking ID Required'));
+// Check for single or multiple bookings
+if(!isset($data->booking_id) && !isset($data->booking_ids)) {
+    echo json_encode(array('message' => 'Booking ID(s) Required'));
     exit();
 }
 
-$booking_id = $data->booking_id;
+$booking_ids = [];
+if (isset($data->booking_ids) && is_array($data->booking_ids)) {
+    $booking_ids = $data->booking_ids;
+} elseif (isset($data->booking_id)) {
+    $booking_ids[] = $data->booking_id;
+}
 
-// Fetch Booking Details
+if (empty($booking_ids)) {
+    echo json_encode(['message' => 'No Valid Booking IDs provided']);
+    exit();
+}
+
+// Fetch Details for ALL bookings to sum price
+$placeholders = implode(',', array_fill(0, count($booking_ids), '?'));
 $query = "SELECT b.*, u.email, u.name as user_name, u.role 
           FROM bookings b
           JOIN users u ON b.user_id = u.id
-          WHERE b.id = :booking_id";
+          WHERE b.id IN ($placeholders)";
 
 $stmt = $db->prepare($query);
-$stmt->bindParam(':booking_id', $booking_id);
-$stmt->execute();
-$booking = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt->execute($booking_ids);
+$bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-if(!$booking) {
-    echo json_encode(array('message' => 'Booking Not Found'));
+if(!$bookings || count($bookings) === 0) {
+    echo json_encode(array('message' => 'Bookings Not Found'));
     exit();
 }
 
+// Validation: Ensure all belong to same user? (Optional but recommended)
+// Calculate Total Amount
+$total_amount = 0;
+// We use the first booking for user details (email, etc)
+$first_booking = $bookings[0];
+
+foreach ($bookings as $b) {
+    // Assuming final_price is what we pay
+    $total_amount += floatval($b['final_price']);
+    
+    // Safety check: if user IDs mismatch?
+    if ($b['user_id'] != $first_booking['user_id']) {
+        echo json_encode(['message' => 'Bookings belong to different users']);
+        exit();
+    }
+}
+
 // Prepare Chapa Data
-$tx_ref = 'TX-' . $booking_id . '-' . time();
-$amount = $booking['final_price'];
+$ids_str = implode('_', $booking_ids);
+// If single booking, use standard format for backward compatibility? 
+// Or just always use MULTI if we want?
+// Let's stick to standard for single ID to minimize risk if frontend sends 1 ID.
+if (count($booking_ids) === 1) {
+    $tx_ref = 'TX-' . $booking_ids[0] . '-' . time();
+} else {
+    $tx_ref = 'TX-MULTI-' . $ids_str . '-' . time();
+}
+
+$amount = $total_amount;
 $currency = 'ETB';
-$email = trim($booking['email']); // Critical: Remove whitespace
+$email = trim($first_booking['email']); // Critical: Remove whitespace
 
 // Ensure logs directory exists
 if (!file_exists('../../logs')) {
@@ -54,7 +91,7 @@ if (!file_exists('../../logs')) {
 }
 
 // Split First and Last Name
-$parts = explode(' ', trim($booking['user_name']));
+$parts = explode(' ', trim($first_booking['user_name']));
 $first_name = $parts[0];
 $last_name = isset($parts[1]) ? implode(' ', array_slice($parts, 1)) : ''; 
 
@@ -69,10 +106,10 @@ $payload = [
     'return_url' => $chapaConfig['return_url'] . '?tx_ref=' . $tx_ref,
     'cancel_url' => isset($chapaConfig['cancel_url']) ? $chapaConfig['cancel_url'] : $chapaConfig['return_url'],
     'return_url' => $chapaConfig['return_url'] . '?tx_ref=' . $tx_ref,
-    'cancel_url' => (isset($chapaConfig['cancel_url']) ? $chapaConfig['cancel_url'] : $chapaConfig['return_url']) . '?booking_id=' . $booking_id,
+    'cancel_url' => (isset($chapaConfig['cancel_url']) ? $chapaConfig['cancel_url'] : $chapaConfig['return_url']),
     "customization" => [
         "title" => "Booking Payment",
-        "description" => "Payment for Booking " . $booking_id
+        "description" => "Payment for " . (count($booking_ids) > 1 ? count($booking_ids) . " Bookings" : "Booking " . $booking_ids[0])
     ]
 ];
 

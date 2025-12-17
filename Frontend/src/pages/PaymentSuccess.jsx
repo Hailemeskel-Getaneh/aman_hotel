@@ -22,7 +22,14 @@ const PaymentSuccess = () => {
 
             try {
                 const response = await paymentService.verify(txRef);
-                if (response.message === 'Payment Verified and Booking Confirmed') {
+                // Check for all possible success messages (rooms, events, multiple bookings)
+                const successMessages = [
+                    'Payment Verified and Booking Confirmed',
+                    'Payment Verified and Bookings Confirmed',
+                    'Payment Verified and Event Booking Confirmed'
+                ];
+
+                if (successMessages.includes(response.message)) {
                     setStatus('success');
                     setMessage('Payment successful! Your booking is confirmed.');
                     setReceipt(response.receipt);

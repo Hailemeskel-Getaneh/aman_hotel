@@ -79,6 +79,10 @@ export const roomTypeService = {
         const response = await api.get(`/rooms/check_availability_new.php?check_in=${checkIn}&check_out=${checkOut}`);
         return response.data;
     },
+    getNextAvailability: async (roomTypeId, fromDate = '') => {
+        const response = await api.get(`/rooms/get_next_availability.php?room_type_id=${roomTypeId}&from_date=${fromDate}`);
+        return response.data;
+    },
     // Admin
     create: async (typeData) => {
         const response = await api.post('/room-types/create.php', typeData);
@@ -99,12 +103,20 @@ export const bookingService = {
         const response = await api.post('/bookings/create.php', bookingData);
         return response.data;
     },
+    createMultiple: async (bookingData) => {
+        const response = await api.post('/bookings/create_multiple.php', bookingData);
+        return response.data;
+    },
     getUserBookings: async (userId) => {
         const response = await api.get(`/bookings/read_user.php?user_id=${userId}`);
         return response.data;
     },
     cancel: async (bookingId) => {
         const response = await api.post('/bookings/cancel.php', { id: bookingId });
+        return response.data;
+    },
+    delete: async (bookingId) => {
+        const response = await api.post('/bookings/delete.php', { id: bookingId });
         return response.data;
     },
     // Admin
@@ -139,6 +151,18 @@ export const eventService = {
         const response = await api.get('/events/read.php');
         return response.data;
     },
+    book: async (bookingData) => {
+        const response = await api.post('/events/book.php', bookingData);
+        return response.data;
+    },
+    getMyBookings: async (userId) => {
+        const response = await api.get(`/events/my_bookings.php?user_id=${userId}`);
+        return response.data;
+    },
+    getReceipt: async (bookingId) => {
+        const response = await api.get(`/events/receipt.php?id=${bookingId}`);
+        return response.data;
+    },
     // Admin
     create: async (eventData) => {
         const response = await api.post('/events/create.php', eventData);
@@ -151,12 +175,23 @@ export const eventService = {
     delete: async (eventId) => {
         const response = await api.post('/events/delete.php', { event_id: eventId });
         return response.data;
+    },
+    deleteBooking: async (bookingId) => {
+        const response = await api.post('/events/delete_booking.php', { booking_id: bookingId });
+        return response.data;
     }
 };
 
 export const paymentService = {
-    initialize: async (bookingId) => {
-        const response = await api.post('/payment/initialize.php', { booking_id: bookingId });
+    initialize: async (bookingIdOrIds) => {
+        const payload = Array.isArray(bookingIdOrIds)
+            ? { booking_ids: bookingIdOrIds }
+            : { booking_id: bookingIdOrIds };
+        const response = await api.post('/payment/initialize.php', payload);
+        return response.data;
+    },
+    initializeEvent: async (bookingId) => {
+        const response = await api.post('/payment/initialize_event.php', { booking_id: bookingId });
         return response.data;
     },
     verify: async (txRef) => {

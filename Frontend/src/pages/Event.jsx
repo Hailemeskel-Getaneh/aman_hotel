@@ -32,7 +32,13 @@ const Events = () => {
                         date: new Date(e.start_time).toLocaleDateString(),
                         location: e.location,
                         description: e.description,
-                        image: defaultImages[index % defaultImages.length] // Cycle through default images
+                        image: defaultImages[index % defaultImages.length],
+                        regular_price: e.regular_price,
+                        vip_price: e.vip_price,
+                        regular_capacity: e.regular_capacity,
+                        vip_capacity: e.vip_capacity,
+                        regular_available: e.regular_available,
+                        vip_available: e.vip_available
                     }));
                     setEvents(mappedEvents);
                 } else {
@@ -50,14 +56,7 @@ const Events = () => {
     }, []);
 
     const handleBookNow = (eventId) => {
-        if (!user) {
-            // Redirect to sign in if not logged in
-            navigate("/signin");
-        } else {
-            // In a real app, you might navigate to an event booking page
-            // For now, we'll just show an alert
-            alert("Event booking functionality coming soon!");
-        }
+        navigate(`/event/${eventId}`);
     };
 
     return (
@@ -96,7 +95,10 @@ const Events = () => {
                                 transition={{ duration: 0.5 }}
                                 className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                             >
-                                <div className="relative h-64 overflow-hidden">
+                                <div
+                                    className="relative h-64 overflow-hidden cursor-pointer"
+                                    onClick={() => navigate(`/event/${event.id}`)}
+                                >
                                     <img
                                         src={event.image}
                                         alt={event.title}
@@ -120,6 +122,44 @@ const Events = () => {
                                             <span className="text-lg">📍</span>
                                             <span>{event.location}</span>
                                         </p>
+
+                                        <div className="mt-3 flex flex-col gap-2">
+                                            {(Number(event.regular_capacity) > 0 || Number(event.regular_price) > 0) && (
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-600 font-medium">Regular</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold text-primary-900">
+                                                            ${event.regular_price}
+                                                        </span>
+                                                        <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium border border-blue-100">
+                                                            {event.regular_available ?? event.regular_capacity} of {event.regular_capacity} available
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {(Number(event.vip_capacity) > 0 || Number(event.vip_price) > 0) && (
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-600 font-medium">VIP</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-semibold text-amber-600">
+                                                            ${event.vip_price}
+                                                        </span>
+                                                        <span className="text-xs bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
+                                                            {event.vip_available ?? event.vip_capacity} of {event.vip_capacity} available
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Legacy/Fallback Display: Show generic if no specific types are set */}
+                                            {(!event.regular_capacity && !event.vip_capacity && !event.regular_price && !event.vip_price) && (
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-600 font-medium">Entry</span>
+                                                    <span className="font-semibold text-primary-900">Free</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
@@ -139,7 +179,7 @@ const Events = () => {
                     </div>
                 )}
             </Section>
-        </main>
+        </main >
     );
 };
 

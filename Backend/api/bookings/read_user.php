@@ -18,9 +18,9 @@ $user_id = isset($_GET['user_id']) ? $_GET['user_id'] : die();
 
 // Query
 $query = 'SELECT b.*, r.room_number, rt.type_name as room_type, rt.price_per_night
-          FROM bookings b 
-          JOIN rooms r ON b.room_id = r.room_id 
-          JOIN room_types rt ON r.room_type_id = rt.type_id
+          FROM bookings b
+          LEFT JOIN rooms r ON b.room_id = r.room_id
+          LEFT JOIN room_types rt ON rt.type_id = COALESCE(b.room_type_id, r.room_type_id)
           WHERE b.user_id = :user_id 
           ORDER BY b.created_at DESC';
 
