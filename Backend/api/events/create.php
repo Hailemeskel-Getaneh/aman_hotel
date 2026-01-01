@@ -28,8 +28,13 @@ $query = 'INSERT INTO events SET
     title = :title, 
     description = :description, 
     start_time = :start_time, 
+    end_time = :end_time,
     location = :location,
-    organizer_id = :organizer_id';
+    organizer_id = :organizer_id,
+    vip_capacity = :vip_capacity,
+    regular_capacity = :regular_capacity,
+    vip_price = :vip_price,
+    regular_price = :regular_price';
 
 $stmt = $db->prepare($query);
 
@@ -37,8 +42,13 @@ $stmt = $db->prepare($query);
 $stmt->bindParam(':title', $data->title);
 $stmt->bindParam(':description', $data->description);
 $stmt->bindParam(':start_time', $data->start_time);
+$stmt->bindParam(':end_time', $data->end_time);
 $stmt->bindParam(':location', $data->location);
 $stmt->bindParam(':organizer_id', $data->organizer_id);
+$stmt->bindParam(':vip_capacity', $data->vip_capacity);
+$stmt->bindParam(':regular_capacity', $data->regular_capacity);
+$stmt->bindParam(':vip_price', $data->vip_price);
+$stmt->bindParam(':regular_price', $data->regular_price);
 
 if($stmt->execute()) {
     echo json_encode(array('message' => 'Event Created'));

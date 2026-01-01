@@ -14,6 +14,7 @@ $database = new Database();
 $db = $database->connect();
 
 // Query to get all bookings with user name and room details
+// Show bookings that either have been paid (payment_ref IS NOT NULL) OR are confirmed (manual/cash bookings)
 $query = 'SELECT 
             b.*, 
             u.name as user_name, 
@@ -25,6 +26,7 @@ $query = 'SELECT
           JOIN users u ON b.user_id = u.id
           JOIN rooms r ON b.room_id = r.room_id
           JOIN room_types rt ON r.room_type_id = rt.type_id
+          WHERE b.payment_ref IS NOT NULL OR b.status = "confirmed"
           ORDER BY b.created_at DESC';
 
 $stmt = $db->prepare($query);

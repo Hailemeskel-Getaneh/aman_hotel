@@ -22,9 +22,25 @@ const PaymentSuccess = () => {
 
             try {
                 const response = await paymentService.verify(txRef);
-                if (response.message === 'Payment Verified and Booking Confirmed') {
+                // Check for all possible success messages (rooms, events, multiple bookings)
+                // Now includes messages with "Pending Admin Approval"
+                const successMessages = [
+                    'Payment Verified and Booking Confirmed',
+                    'Payment Verified and Bookings Confirmed',
+                    'Payment Verified and Event Booking Confirmed',
+                    'Payment Verified - Booking Pending Admin Approval',
+                    'Payment Verified - Bookings Pending Admin Approval',
+                    'Payment Verified - Event Booking Pending Admin Approval'
+                ];
+
+                if (successMessages.includes(response.message)) {
                     setStatus('success');
-                    setMessage('Payment successful! Your booking is confirmed.');
+                    // Update message to inform user about admin approval
+                    if (response.message.includes('Pending Admin Approval')) {
+                        setMessage('Payment successful! Your booking is pending admin approval.');
+                    } else {
+                        setMessage('Payment successful! Your booking is confirmed.');
+                    }
                     setReceipt(response.receipt);
                 } else {
                     setStatus('error');
@@ -92,7 +108,7 @@ const PaymentSuccess = () => {
                 {/* Success Banner (Screen Only) */}
                 <div className="bg-green-50 border-b border-green-100 p-4 text-center print:hidden">
                     <p className="text-green-800 font-medium flex items-center justify-center gap-2">
-                        ✅ Payment Verified & Booking Confirmed
+                        ✅ {message}
                     </p>
                 </div>
 
@@ -124,40 +140,73 @@ const PaymentSuccess = () => {
                             <p className="text-gray-500 text-sm">{receipt?.user_email}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-gray-500 text-sm mb-1">Room Number</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                #{receipt?.room_number || 'N/A'}
-                            </p>
-                            <p className="text-gray-600 text-sm font-medium">
-                                {receipt?.room_type || 'Standard Room'}
-                            </p>
+                            {receipt?.room_number ? (
+                                <>
+                                    <p className="text-gray-500 text-sm mb-1">Room Number</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        #{receipt?.room_number}
+                                    </p>
+                                    <p className="text-gray-600 text-sm font-medium">
+                                        {receipt?.room_type || 'Standard Room'}
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-gray-500 text-sm mb-1">Event Ticket</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {receipt?.event_title || 'Event'}
+                                    </p>
+                                    <p className="text-gray-600 text-sm font-medium">
+                                        {receipt?.quantity}x {receipt?.ticket_type?.toUpperCase() || 'TICKET'}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     {/* Stay Details */}
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 print:border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <div>
-                                <p className="text-gray-500 text-xs uppercase tracking-wide">Check-In</p>
-                                <p className="text-gray-900 font-medium">
-                                    {receipt?.check_in ? new Date(receipt.check_in).toDateString() : '-'}
-                                </p>
-                            </div>
-                            <div className="text-gray-300">→</div>
-                            <div className="text-right">
-                                <p className="text-gray-500 text-xs uppercase tracking-wide">Check-Out</p>
-                                <p className="text-gray-900 font-medium">
-                                    {receipt?.check_out ? new Date(receipt.check_out).toDateString() : '-'}
-                                </p>
+                    {receipt?.check_in && receipt?.check_out ? (
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 print:border-gray-200">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide">Check-In</p>
+                                    <p className="text-gray-900 font-medium">
+                                        {new Date(receipt.check_in).toDateString()}
+                                    </p>
+                                </div>
+                                <div className="text-gray-300">→</div>
+                                <div className="text-right">
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide">Check-Out</p>
+                                    <p className="text-gray-900 font-medium">
+                                        {new Date(receipt.check_out).toDateString()}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    ) : receipt?.start_time ? (
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100 print:border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide">Event Date</p>
+                                    <p className="text-gray-900 font-medium">
+                                        {new Date(receipt.start_time).toDateString()}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide">Location</p>
+                                    <p className="text-gray-900 font-medium">
+                                        {receipt.location || 'TBA'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
 
                     {/* Total */}
                     <div className="flex justify-between items-center pt-4 border-t-2 border-gray-900">
                         <p className="text-xl font-bold text-gray-800">Total Paid</p>
                         <p className="text-3xl font-bold text-gray-900">
-                            {Number(receipt?.final_price).toLocaleString()} <span className="text-lg text-gray-500 font-normal">ETB</span>
+                            {Number(receipt?.final_price || receipt?.total_price || 0).toLocaleString()} <span className="text-lg text-gray-500 font-normal">ETB</span>
                         </p>
                     </div>
                 </div>

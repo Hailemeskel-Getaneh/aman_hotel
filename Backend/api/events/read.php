@@ -32,6 +32,34 @@ if($num > 0) {
     $events_arr['data'] = array();
 
     while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $event_id = $row['event_id'];
+        
+        // Calculate booked seats for VIP
+        $vipBookedQuery = "SELECT COALESCE(SUM(quantity), 0) as booked 
+                           FROM event_bookings 
+                           WHERE event_id = :event_id 
+                           AND ticket_type = 'vip' 
+                           AND status IN ('confirmed', 'pending')";
+        $vipStmt = $db->prepare($vipBookedQuery);
+        $vipStmt->bindParam(':event_id', $event_id);
+        $vipStmt->execute();
+        $vipBooked = $vipStmt->fetch(PDO::FETCH_ASSOC)['booked'];
+        
+        // Calculate booked seats for Regular
+        $regularBookedQuery = "SELECT COALESCE(SUM(quantity), 0) as booked 
+                               FROM event_bookings 
+                               WHERE event_id = :event_id 
+                               AND ticket_type = 'regular' 
+                               AND status IN ('confirmed', 'pending')";
+        $regularStmt = $db->prepare($regularBookedQuery);
+        $regularStmt->bindParam(':event_id', $event_id);
+        $regularStmt->execute();
+        $regularBooked = $regularStmt->fetch(PDO::FETCH_ASSOC)['booked'];
+        
+        // Calculate remaining seats
+        $row['vip_available'] = max(0, intval($row['vip_capacity']) - intval($vipBooked));
+        $row['regular_available'] = max(0, intval($row['regular_capacity']) - intval($regularBooked));
+        
         array_push($events_arr['data'], $row);
     }
 

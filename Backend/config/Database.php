@@ -16,7 +16,13 @@ class Database {
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch(PDOException $e) {
-            echo 'Connection Error: ' . $e->getMessage();
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode(array(
+                'status' => 'error',
+                'message' => 'Database Connection Error: ' . $e->getMessage()
+            ));
+            exit();
         }
 
         return $this->conn;

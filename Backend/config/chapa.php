@@ -4,4 +4,5 @@ return [
     'public_key' => 'CHAPUBK_TEST-oGtSCeMh1aNJjoMtfapBfMhJGcekB7Hy', // Placeholder
     'callback_url' => 'http://localhost:5173/payment/callback', // Verify this URL
     'return_url' => 'http://localhost:5173/payment/success',
+    'cancel_url' => 'http://localhost:5173/payment/failed',
 ];

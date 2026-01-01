@@ -1,3 +1,4 @@
+-- Updated Database Schema with Room Types
 -- Database: hotel_management
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -36,16 +37,41 @@ INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password_hash`, `role`) VA
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `room_types`
+--
+
+CREATE TABLE `room_types` (
+  `type_id` int(11) NOT NULL,
+  `type_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `price_per_night` decimal(10,2) NOT NULL,
+  `image_url` varchar(255) DEFAULT NULL,
+  `amenities` text DEFAULT NULL,
+  `max_occupancy` int(11) DEFAULT 2,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `room_types`
+--
+
+INSERT INTO `room_types` (`type_id`, `type_name`, `description`, `price_per_night`, `image_url`, `amenities`, `max_occupancy`) VALUES
+(1, 'Single', 'Cozy single room with a garden view.', 100.00, NULL, 'Free WiFi, Air Conditioning, TV, Mini Bar', 1),
+(2, 'Double', 'Spacious double room perfect for couples.', 150.00, NULL, 'Free WiFi, Air Conditioning, TV, Mini Bar, King Size Bed', 2),
+(3, 'Suite', 'Luxury suite with a private balcony and jacuzzi.', 300.00, NULL, 'Free WiFi, Air Conditioning, TV, Mini Bar, Jacuzzi, Balcony, Living Room', 4),
+(4, 'Deluxe', 'Modern deluxe room with city view.', 200.00, NULL, 'Free WiFi, Air Conditioning, TV, Mini Bar, City View, Work Desk', 3);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `rooms`
 --
 
 CREATE TABLE `rooms` (
   `room_id` int(11) NOT NULL,
   `room_number` varchar(10) NOT NULL,
-  `room_type` varchar(50) NOT NULL,
-  `price_per_night` decimal(10,2) NOT NULL,
+  `room_type_id` int(11) NOT NULL,
   `status` enum('available','booked','maintenance') DEFAULT 'available',
-  `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -53,11 +79,11 @@ CREATE TABLE `rooms` (
 -- Dumping data for table `rooms`
 --
 
-INSERT INTO `rooms` (`room_id`, `room_number`, `room_type`, `price_per_night`, `status`, `description`) VALUES
-(1, '101', 'Single', 100.00, 'available', 'Cozy single room with a garden view.'),
-(2, '102', 'Double', 150.00, 'available', 'Spacious double room perfect for couples.'),
-(3, '201', 'Suite', 300.00, 'available', 'Luxury suite with a private balcony and jacuzzi.'),
-(4, '202', 'Deluxe', 200.00, 'available', 'Modern deluxe room with city view.');
+INSERT INTO `rooms` (`room_id`, `room_number`, `room_type_id`, `status`) VALUES
+(1, '101', 1, 'available'),
+(2, '102', 2, 'available'),
+(3, '201', 3, 'available'),
+(4, '202', 4, 'available');
 
 -- --------------------------------------------------------
 
@@ -134,11 +160,20 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `room_types`
+--
+ALTER TABLE `room_types`
+  ADD PRIMARY KEY (`type_id`),
+  ADD UNIQUE KEY `type_name` (`type_name`);
+
+--
 -- Indexes for table `rooms`
 --
 ALTER TABLE `rooms`
   ADD PRIMARY KEY (`room_id`),
-  ADD UNIQUE KEY `room_number` (`room_number`);
+  ADD UNIQUE KEY `room_number` (`room_number`),
+  ADD KEY `fk_room_type` (`room_type_id`),
+  ADD KEY `idx_room_type_status` (`room_type_id`, `status`);
 
 --
 -- Indexes for table `bookings`
@@ -172,6 +207,12 @@ ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `room_types`
+--
+ALTER TABLE `room_types`
+  MODIFY `type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `rooms`
 --
 ALTER TABLE `rooms`
@@ -198,6 +239,12 @@ ALTER TABLE `events`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `rooms`
+--
+ALTER TABLE `rooms`
+  ADD CONSTRAINT `fk_room_type` FOREIGN KEY (`room_type_id`) REFERENCES `room_types` (`type_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 --
 -- Constraints for table `bookings`

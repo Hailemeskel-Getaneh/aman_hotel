@@ -64,7 +64,7 @@ $status = 'pending';
 $conflict_query = "SELECT COUNT(*) as conflict_count 
                    FROM bookings 
                    WHERE room_id = :room_id 
-                   AND status IN ('pending', 'confirmed') 
+                   AND status = 'confirmed' 
                    AND (
                         (check_in < :check_out AND check_out > :check_in)
                    )";

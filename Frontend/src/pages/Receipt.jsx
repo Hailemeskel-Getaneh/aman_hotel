@@ -104,9 +104,9 @@ const Receipt = () => {
                             <p className="text-gray-500 text-sm">{receipt.user_email}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-gray-500 text-sm mb-1">Room Number</p>
+                            <p className="text-gray-500 text-sm mb-1">{receipt.room_number ? 'Room Number' : 'Rooms Booked'}</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                #{receipt.room_number || 'N/A'}
+                                {receipt.room_number ? `#${receipt.room_number}` : `${receipt.quantity || 1} Rooms`}
                             </p>
                             <p className="text-gray-600 text-sm font-medium">
                                 {receipt.room_type || 'Standard Room'}
