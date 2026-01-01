@@ -46,7 +46,7 @@ export default function EventDetails() {
                             regular_available: foundEvent.regular_available,
                             vip_price: foundEvent.vip_price,
                             regular_price: foundEvent.regular_price,
-                            image: defaultImages[eventIndex % defaultImages.length]
+                            image: foundEvent.image || defaultImages[eventIndex % defaultImages.length]
                         });
                     } else {
                         setError("Event not found");
@@ -229,7 +229,7 @@ export default function EventDetails() {
                                                 }`}
                                         >
                                             <div className="font-semibold text-gray-900">Regular</div>
-                                            <div className="text-primary-900 font-bold">${event.regular_price}</div>
+                                            <div className="text-primary-900 font-bold">ETB {event.regular_price}</div>
                                         </div>
                                     )}
 
@@ -242,7 +242,7 @@ export default function EventDetails() {
                                                 }`}
                                         >
                                             <div className="font-semibold text-gray-900">VIP</div>
-                                            <div className="text-amber-600 font-bold">${event.vip_price}</div>
+                                            <div className="text-amber-600 font-bold">ETB {event.vip_price}</div>
                                         </div>
                                     )}
                                 </div>
@@ -271,7 +271,7 @@ export default function EventDetails() {
                                 <div className="flex justify-between items-center py-4 border-t border-gray-100">
                                     <span className="font-serif font-bold text-lg text-gray-900">Total</span>
                                     <span className="font-serif font-bold text-2xl text-primary-900">
-                                        ${(bookingType === 'vip' ? event.vip_price : event.regular_price) * quantity}
+                                        ETB {(bookingType === 'vip' ? event.vip_price : event.regular_price) * quantity}
                                     </span>
                                 </div>
                             </div>

@@ -235,7 +235,7 @@ export default function BookingPage() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
                             <span>Price per night:</span>
-                            <span>${availableRooms[0]?.price_per_night}</span>
+                            <span>ETB {availableRooms[0]?.price_per_night}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
                             <span>Nights:</span>
@@ -247,7 +247,7 @@ export default function BookingPage() {
                         </div>
                         <div style={{ borderTop: '1px solid #ddd', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.2rem', color: '#000' }}>
                             <span>Total Price:</span>
-                            <span>${(
+                            <span>ETB {(
                                 (availableRooms[0]?.price_per_night || 0) *
                                 Math.max(0, Math.ceil((new Date(form.checkout) - new Date(form.checkin)) / (1000 * 60 * 60 * 24))) *
                                 form.roomCount

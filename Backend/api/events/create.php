@@ -34,7 +34,8 @@ $query = 'INSERT INTO events SET
     vip_capacity = :vip_capacity,
     regular_capacity = :regular_capacity,
     vip_price = :vip_price,
-    regular_price = :regular_price';
+    regular_price = :regular_price,
+    image = :image';
 
 $stmt = $db->prepare($query);
 
@@ -49,6 +50,7 @@ $stmt->bindParam(':vip_capacity', $data->vip_capacity);
 $stmt->bindParam(':regular_capacity', $data->regular_capacity);
 $stmt->bindParam(':vip_price', $data->vip_price);
 $stmt->bindParam(':regular_price', $data->regular_price);
+$stmt->bindParam(':image', $data->image);
 
 if($stmt->execute()) {
     echo json_encode(array('message' => 'Event Created'));

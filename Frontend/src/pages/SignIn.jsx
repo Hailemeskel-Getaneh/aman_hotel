@@ -27,8 +27,10 @@ export default function SignIn() {
                     navigate(redirectUrl);
                 } else {
                     // Default redirect based on role
-                    if (data.user.role === 'admin' || data.user.role === 'receptionist') {
+                    if (data.user.role === 'admin') {
                         navigate('/admin');
+                    } else if (data.user.role === 'receptionist') {
+                        navigate('/receptionist');
                     } else {
                         navigate('/');
                     }

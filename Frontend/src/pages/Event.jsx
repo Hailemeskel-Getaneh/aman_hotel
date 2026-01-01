@@ -32,7 +32,7 @@ const Events = () => {
                         date: new Date(e.start_time).toLocaleDateString(),
                         location: e.location,
                         description: e.description,
-                        image: defaultImages[index % defaultImages.length],
+                        image: e.image || defaultImages[index % defaultImages.length],
                         regular_price: e.regular_price,
                         vip_price: e.vip_price,
                         regular_capacity: e.regular_capacity,
@@ -129,7 +129,7 @@ const Events = () => {
                                                     <span className="text-gray-600 font-medium">Regular</span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-primary-900">
-                                                            ${event.regular_price}
+                                                            ETB {event.regular_price}
                                                         </span>
                                                         <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium border border-blue-100">
                                                             {event.regular_available ?? event.regular_capacity} of {event.regular_capacity} available
@@ -143,7 +143,7 @@ const Events = () => {
                                                     <span className="text-gray-600 font-medium">VIP</span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-amber-600">
-                                                            ${event.vip_price}
+                                                            ETB {event.vip_price}
                                                         </span>
                                                         <span className="text-xs bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
                                                             {event.vip_available ?? event.vip_capacity} of {event.vip_capacity} available

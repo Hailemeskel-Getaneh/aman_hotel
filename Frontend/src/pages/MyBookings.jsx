@@ -257,7 +257,7 @@ export default function MyBookings() {
                                         <div className="flex items-center text-sm text-gray-700">
                                             <span className="font-semibold w-24">Total Price:</span>
                                             <span className="text-primary-900 font-bold">
-                                                ${parseFloat(item.total_price).toFixed(2)}
+                                                ETB {parseFloat(item.total_price).toFixed(2)}
                                             </span>
                                         </div>
                                     </div>
@@ -404,8 +404,8 @@ export default function MyBookings() {
                                                                         }
                                                                     }}
                                                                     className={`px-4 py-2 rounded-lg text-sm font-semibold shadow transition-colors border ${item.refund_status === 'completed'
-                                                                            ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
-                                                                            : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
+                                                                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                                                        : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
                                                                         }`}
                                                                 >
                                                                     {item.refund_status === 'completed' ? '✅ Refund Paid' : '💰 Cashback Info'}

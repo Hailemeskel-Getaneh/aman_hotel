@@ -1416,7 +1416,10 @@ function AdminEvents({ userRole }) {
             vip_capacity: 0,
             regular_capacity: 0,
             vip_price: 0,
-            regular_price: 0
+            regular_capacity: 0,
+            vip_price: 0,
+            regular_price: 0,
+            image: ''
         });
         setIsEditing(false);
         setShowModal(true);
@@ -1593,13 +1596,18 @@ function AdminEvents({ userRole }) {
                                 <input required value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
                             </div>
 
+                            <div className="form-group">
+                                <label>Image URL</label>
+                                <input value={formData.image || ''} placeholder="https://..." onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                            </div>
+
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: '#f8f9fa', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
                                 <div className="form-group">
                                     <label>Regular Capacity</label>
                                     <input type="number" value={formData.regular_capacity} onChange={e => setFormData({ ...formData, regular_capacity: e.target.value })} />
                                 </div>
                                 <div className="form-group">
-                                    <label>Regular Price ($)</label>
+                                    <label>Regular Price (ETB)</label>
                                     <input type="number" step="0.01" value={formData.regular_price} onChange={e => setFormData({ ...formData, regular_price: e.target.value })} />
                                 </div>
                                 <div className="form-group">
@@ -1607,7 +1615,7 @@ function AdminEvents({ userRole }) {
                                     <input type="number" value={formData.vip_capacity} onChange={e => setFormData({ ...formData, vip_capacity: e.target.value })} />
                                 </div>
                                 <div className="form-group">
-                                    <label>VIP Price ($)</label>
+                                    <label>VIP Price (ETB)</label>
                                     <input type="number" step="0.01" value={formData.vip_price} onChange={e => setFormData({ ...formData, vip_price: e.target.value })} />
                                 </div>
                             </div>
@@ -1677,8 +1685,8 @@ function AdminEvents({ userRole }) {
                             <div className="form-group">
                                 <label>Ticket Type</label>
                                 <select value={bookingFormData.ticket_type} onChange={e => setBookingFormData({ ...bookingFormData, ticket_type: e.target.value })}>
-                                    <option value="regular">Regular (${selectedEvent.regular_price})</option>
-                                    <option value="vip">VIP (${selectedEvent.vip_price})</option>
+                                    <option value="regular">Regular ({selectedEvent.regular_price} ETB)</option>
+                                    <option value="vip">VIP ({selectedEvent.vip_price} ETB)</option>
                                 </select>
                             </div>
 

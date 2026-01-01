@@ -204,7 +204,7 @@ export default function RoomDetails() {
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Price per night</p>
                                     <p className="text-3xl font-bold text-primary-900">
-                                        ${room.price || room.price_per_night}
+                                        ETB {room.price || room.price_per_night}
                                     </p>
                                 </div>
 

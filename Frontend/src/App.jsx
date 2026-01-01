@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Events from "./pages/Event.jsx";
 import EventDetails from "./pages/EventDetails.jsx";
 import Admin from "./pages/Admin.jsx";
+import Receptionist from "./pages/Receptionist.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 import PaymentFailed from "./pages/PaymentFailed.jsx";
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="/events" element={<Events />} />
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/receptionist" element={<Receptionist />} />
           <Route path="/event-receipt/:bookingId" element={<EventReceipt />} />
         </Routes>
       </Layout>
