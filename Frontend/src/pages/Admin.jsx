@@ -1256,7 +1256,7 @@ function AdminBookings({ userRole }) {
                                             </span>
                                         </td>
                                         <td>{book.quantity}</td>
-                                        <td>${parseFloat(book.total_price).toFixed(2)}</td>
+                                        <td>{parseFloat(book.total_price).toFixed(2)} Birr</td>
                                         <td><small>{book.payment_ref || 'N/A'}</small></td>
                                         <td>
                                             <span className={`status-badge status-${book.status}`}>

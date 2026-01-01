@@ -129,7 +129,7 @@ const Events = () => {
                                                     <span className="text-gray-600 font-medium">Regular</span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-primary-900">
-                                                            ${event.regular_price}
+                                                            {event.regular_price} Birr
                                                         </span>
                                                         <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-medium border border-blue-100">
                                                             {event.regular_available ?? event.regular_capacity} of {event.regular_capacity} available
@@ -143,7 +143,7 @@ const Events = () => {
                                                     <span className="text-gray-600 font-medium">VIP</span>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-amber-600">
-                                                            ${event.vip_price}
+                                                            {event.vip_price} Birr
                                                         </span>
                                                         <span className="text-xs bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-medium border border-amber-100">
                                                             {event.vip_available ?? event.vip_capacity} of {event.vip_capacity} available

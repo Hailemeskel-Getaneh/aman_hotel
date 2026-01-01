@@ -257,7 +257,7 @@ export default function MyBookings() {
                                         <div className="flex items-center text-sm text-gray-700">
                                             <span className="font-semibold w-24">Total Price:</span>
                                             <span className="text-primary-900 font-bold">
-                                                ${parseFloat(item.total_price).toFixed(2)}
+                                                {parseFloat(item.total_price).toFixed(2)} Birr
                                             </span>
                                         </div>
                                     </div>
@@ -288,9 +288,9 @@ export default function MyBookings() {
                                                                     whileTap={{ scale: 0.95 }}
                                                                     onClick={() => {
                                                                         if (item.refund_status === 'completed') {
-                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB`);
+                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} Birr`);
                                                                         } else {
-                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB\nStatus: ${item.refund_status.toUpperCase()}`);
+                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} Birr\nStatus: ${item.refund_status.toUpperCase()}`);
                                                                         }
                                                                     }}
                                                                     className={`px-4 py-2 rounded-lg text-sm font-semibold shadow transition-colors border ${item.refund_status === 'completed'
@@ -398,14 +398,14 @@ export default function MyBookings() {
                                                                     whileTap={{ scale: 0.95 }}
                                                                     onClick={() => {
                                                                         if (item.refund_status === 'completed') {
-                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB`);
+                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} Birr`);
                                                                         } else {
-                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB\nStatus: ${item.refund_status.toUpperCase()}`);
+                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} Birr\nStatus: ${item.refund_status.toUpperCase()}`);
                                                                         }
                                                                     }}
                                                                     className={`px-4 py-2 rounded-lg text-sm font-semibold shadow transition-colors border ${item.refund_status === 'completed'
-                                                                            ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
-                                                                            : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
+                                                                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                                                        : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
                                                                         }`}
                                                                 >
                                                                     {item.refund_status === 'completed' ? '✅ Refund Paid' : '💰 Cashback Info'}

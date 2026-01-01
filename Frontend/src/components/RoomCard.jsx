@@ -134,7 +134,7 @@ export default function RoomCard({ room, user, checkIn, checkOut, onDateRequired
                 )}
 
                 <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-bold text-primary-900 shadow-sm">
-                    ${room.price} <span className="text-xs font-normal text-gray-600">/ night</span>
+                    {room.price} Birr <span className="text-xs font-normal text-gray-600">/ night</span>
                 </div>
             </div>
 

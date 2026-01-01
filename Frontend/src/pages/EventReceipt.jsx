@@ -129,7 +129,7 @@ const EventReceipt = () => {
                     <div className="flex justify-between items-center pt-4 border-t-2 border-gray-900">
                         <p className="text-xl font-bold text-gray-800">Total Paid</p>
                         <p className="text-3xl font-bold text-gray-900">
-                            {Number(receipt.total_price).toLocaleString()} <span className="text-lg text-gray-500 font-normal">ETB</span>
+                            {Number(receipt.total_price).toLocaleString()} <span className="text-lg text-gray-500 font-normal">Birr</span>
                         </p>
                     </div>
                 </div>
