@@ -18,7 +18,7 @@ export default function Footer() {
                             <span className="text-2xl font-serif font-bold">Aman Hotel</span>
                         </div>
                         <div className="space-y-4 text-gray-300">
-                            <p>123 Luxury Street,<br />Debre Berhan, Ethiopia</p>
+                            <p>123 Luxury Street,<br />Addis Ababa, Ethiopia</p>
                             <p className="hover:text-secondary transition-colors">
                                 <a href="tel:+251912345678">+251 912 345 678</a>
                             </p>

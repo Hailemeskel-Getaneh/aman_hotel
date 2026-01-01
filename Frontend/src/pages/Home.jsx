@@ -333,6 +333,44 @@ export default function Home() {
         </div>
       </Section>
 
+      {/* Location Section */}
+      <Section className="bg-white">
+        <div className="flex flex-col md:flex-row gap-12 items-center">
+          <div className="w-full md:w-1/2">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary-900 mb-6">Visit Us</h2>
+            <div className="h-1 w-20 bg-secondary mb-8" />
+            <p className="text-gray-600 text-lg leading-relaxed mb-6">
+              Aman Hotel is perfectly situated in the heart of Addis Ababa, capturing the vibrant spirit of the capital city while offering a serene escape.
+              Located near Bole International Airport and major business districts, we provide the perfect base for your stay.
+            </p>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-4 text-gray-700">
+                <MapPin className="text-secondary h-6 w-6" />
+                <span>Bole Road, Addis Ababa, Ethiopia</span>
+              </div>
+            </div>
+
+            <Link to="/contact">
+              <Button size="lg">Get Directions</Button>
+            </Link>
+          </div>
+
+          <div className="w-full md:w-1/2 h-[400px] rounded-2xl overflow-hidden shadow-lg">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d252230.02028974562!2d38.61332804024806!3d9.022736270419363!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85cef5ab402d%3A0x8467b6b037a24d49!2sAddis%20Ababa!5e0!3m2!1sen!2set!4v1709234567890!5m2!1sen!2set"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Aman Hotel Location"
+            ></iframe>
+          </div>
+        </div>
+      </Section>
+
       {/* Testimonials Section */}
       <Testimonials />
     </main>

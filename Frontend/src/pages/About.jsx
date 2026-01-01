@@ -57,7 +57,7 @@ export default function About() {
                         <div className="space-y-4 text-gray-600 leading-relaxed">
                             <p>
                                 Aman Hotel is a luxury sanctuary designed to provide an unforgettable
-                                hospitality experience. Located in the heart of Debre Berhan, we offer a perfect blend of modern elegance and traditional warmth.
+                                hospitality experience. Located in the heart of Addis Ababa, we offer a perfect blend of modern elegance and traditional warmth.
                             </p>
                             <p>
                                 Whether you are here for business or leisure, our top-grade service, delicious cuisine, and calm environment ensure a stay that exceeds expectations.
