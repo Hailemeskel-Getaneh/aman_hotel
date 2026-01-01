@@ -64,8 +64,8 @@ if(isset($result['status']) && $result['status'] === 'success') {
         if (isset($parts[2])) {
             $booking_id = $parts[2];
             
-            // Update event_bookings
-            $query = "UPDATE event_bookings SET status = 'confirmed', payment_ref = :tx_ref WHERE booking_id = :booking_id";
+            // Update event_bookings - set to pending for admin approval
+            $query = "UPDATE event_bookings SET status = 'pending', payment_ref = :tx_ref WHERE booking_id = :booking_id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':tx_ref', $tx_ref);
             $stmt->bindParam(':booking_id', $booking_id);
@@ -89,7 +89,7 @@ if(isset($result['status']) && $result['status'] === 'success') {
                  $bookingDetails = $receiptStmt->fetch(PDO::FETCH_ASSOC);
 
                  echo json_encode([
-                    'message' => 'Payment Verified and Event Booking Confirmed',
+                    'message' => 'Payment Verified - Event Booking Pending Admin Approval',
                     'data' => $result['data'],
                     'receipt' => $bookingDetails
                 ]);
@@ -112,10 +112,11 @@ if(isset($result['status']) && $result['status'] === 'success') {
             $booking_ids = explode('_', $booking_ids_str);
             
             if (count($booking_ids) > 0) {
-                 // Update All Bookings
+                 // Update All Bookings with payment_ref - set to pending for admin approval
                  $placeholders = implode(',', array_fill(0, count($booking_ids), '?'));
-                 $query = "UPDATE bookings SET status = 'confirmed' WHERE id IN ($placeholders)";
+                 $query = "UPDATE bookings SET status = 'pending', payment_ref = :tx_ref WHERE id IN ($placeholders)";
                  $stmt = $db->prepare($query);
+                 $stmt->bindParam(':tx_ref', $tx_ref);
                  
                  // Execute with ids array
                  if ($stmt->execute($booking_ids)) {
@@ -145,7 +146,7 @@ if(isset($result['status']) && $result['status'] === 'success') {
                      }
 
                      echo json_encode([
-                        'message' => 'Payment Verified and Bookings Confirmed',
+                        'message' => 'Payment Verified - Bookings Pending Admin Approval',
                         'data' => $result['data'],
                         'receipt' => $bookingDetails,
                         'confirmed_count' => count($booking_ids),
@@ -170,9 +171,10 @@ if(isset($result['status']) && $result['status'] === 'success') {
         if(count($parts) >= 2) {
             $booking_id = $parts[1];
 
-            // Update Booking Status to 'confirmed'
-            $query = "UPDATE bookings SET status = 'confirmed' WHERE id = :booking_id";
+            // Update Booking Status to 'pending' and save payment_ref - requires admin approval
+            $query = "UPDATE bookings SET status = 'pending', payment_ref = :tx_ref WHERE id = :booking_id";
             $stmt = $db->prepare($query);
+            $stmt->bindParam(':tx_ref', $tx_ref);
             $stmt->bindParam(':booking_id', $booking_id);
             
             if($stmt->execute()) {
@@ -194,7 +196,7 @@ if(isset($result['status']) && $result['status'] === 'success') {
                  $bookingDetails = $receiptStmt->fetch(PDO::FETCH_ASSOC);
 
                  echo json_encode([
-                    'message' => 'Payment Verified and Booking Confirmed',
+                    'message' => 'Payment Verified - Booking Pending Admin Approval',
                     'data' => $result['data'],
                     'receipt' => $bookingDetails
                 ]);

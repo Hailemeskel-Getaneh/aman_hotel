@@ -281,33 +281,70 @@ export default function MyBookings() {
                                                         </motion.button>
                                                     )}
                                                     {item.status?.toLowerCase() === 'cancelled' && (
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            onClick={() => handleDelete(item.ids)}
-                                                            className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
-                                                        >
-                                                            Delete
-                                                        </motion.button>
+                                                        <>
+                                                            {item.refund_status ? (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    onClick={() => {
+                                                                        if (item.refund_status === 'completed') {
+                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB`);
+                                                                        } else {
+                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB\nStatus: ${item.refund_status.toUpperCase()}`);
+                                                                        }
+                                                                    }}
+                                                                    className={`px-4 py-2 rounded-lg text-sm font-semibold shadow transition-colors border ${item.refund_status === 'completed'
+                                                                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                                                        : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
+                                                                        }`}
+                                                                >
+                                                                    {item.refund_status === 'completed' ? '✅ Refund Paid' : '💰 Cashback Info'}
+                                                                </motion.button>
+                                                            ) : (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    onClick={() => handleDelete(item.ids)}
+                                                                    className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                                >
+                                                                    Delete
+                                                                </motion.button>
+                                                            )}
+                                                        </>
                                                     )}
                                                     {item.status?.toLowerCase() === 'pending' && (
                                                         <>
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                onClick={() => handleDelete(item.ids, 'room')}
-                                                                className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
-                                                            >
-                                                                Delete
-                                                            </motion.button>
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                onClick={() => handlePayment(item.ids)}
-                                                                className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
-                                                            >
-                                                                Pay Now
-                                                            </motion.button>
+                                                            {/* If payment_ref exists, show View Receipt (paid but pending approval) */}
+                                                            {item.payment_ref ? (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    onClick={() => navigate(`/receipt/${item.ids[0]}`)}
+                                                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-gray-200 transition-colors"
+                                                                >
+                                                                    View Receipt
+                                                                </motion.button>
+                                                            ) : (
+                                                                /* No payment_ref, show Delete and Pay Now */
+                                                                <>
+                                                                    <motion.button
+                                                                        whileHover={{ scale: 1.05 }}
+                                                                        whileTap={{ scale: 0.95 }}
+                                                                        onClick={() => handleDelete(item.ids, 'room')}
+                                                                        className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                                    >
+                                                                        Delete
+                                                                    </motion.button>
+                                                                    <motion.button
+                                                                        whileHover={{ scale: 1.05 }}
+                                                                        whileTap={{ scale: 0.95 }}
+                                                                        onClick={() => handlePayment(item.ids)}
+                                                                        className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                                    >
+                                                                        Pay Now
+                                                                    </motion.button>
+                                                                </>
+                                                            )}
                                                         </>
                                                     )}
                                                 </>
@@ -315,38 +352,75 @@ export default function MyBookings() {
                                                 <>
                                                     {item.status?.toLowerCase() === 'pending' && (
                                                         <>
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                onClick={() => handleDelete(item.booking_id, 'event')}
-                                                                className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
-                                                            >
-                                                                Delete
-                                                            </motion.button>
-                                                            <motion.button
-                                                                whileHover={{ scale: 1.05 }}
-                                                                whileTap={{ scale: 0.95 }}
-                                                                onClick={async () => {
-                                                                    // Event Pay Logic
-                                                                    const payInit = await paymentService.initializeEvent(item.booking_id);
-                                                                    if (payInit && payInit.checkout_url) window.location.href = payInit.checkout_url;
-                                                                }}
-                                                                className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
-                                                            >
-                                                                Pay Now
-                                                            </motion.button>
+                                                            {/* If payment_ref exists, show View Ticket (paid but pending approval) */}
+                                                            {item.payment_ref ? (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-gray-200 transition-colors"
+                                                                    onClick={() => navigate(`/event-receipt/${item.booking_id}`)}
+                                                                >
+                                                                    View Ticket
+                                                                </motion.button>
+                                                            ) : (
+                                                                /* No payment_ref, show Delete and Pay Now */
+                                                                <>
+                                                                    <motion.button
+                                                                        whileHover={{ scale: 1.05 }}
+                                                                        whileTap={{ scale: 0.95 }}
+                                                                        onClick={() => handleDelete(item.booking_id, 'event')}
+                                                                        className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                                    >
+                                                                        Delete
+                                                                    </motion.button>
+                                                                    <motion.button
+                                                                        whileHover={{ scale: 1.05 }}
+                                                                        whileTap={{ scale: 0.95 }}
+                                                                        onClick={async () => {
+                                                                            // Event Pay Logic
+                                                                            const payInit = await paymentService.initializeEvent(item.booking_id);
+                                                                            if (payInit && payInit.checkout_url) window.location.href = payInit.checkout_url;
+                                                                        }}
+                                                                        className="bg-primary-900 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-primary-800 transition-colors"
+                                                                    >
+                                                                        Pay Now
+                                                                    </motion.button>
+                                                                </>
+                                                            )}
                                                         </>
                                                     )}
 
                                                     {item.status?.toLowerCase() === 'cancelled' && (
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            onClick={() => handleDelete(item.booking_id, 'event')}
-                                                            className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
-                                                        >
-                                                            Delete
-                                                        </motion.button>
+                                                        <>
+                                                            {item.refund_status ? (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    onClick={() => {
+                                                                        if (item.refund_status === 'completed') {
+                                                                            alert(`✅ REFUND PAID\n\nThis refund has been completed.\n\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB`);
+                                                                        } else {
+                                                                            alert(`💰 CASHBACK INFORMATION 💰\n\nPlease visit the hotel cashier with this reference code to collect your refund.\n\nTransaction Ref: ${item.payment_ref}\nAmount: ${parseFloat(item.total_price).toFixed(2)} ETB\nStatus: ${item.refund_status.toUpperCase()}`);
+                                                                        }
+                                                                    }}
+                                                                    className={`px-4 py-2 rounded-lg text-sm font-semibold shadow transition-colors border ${item.refund_status === 'completed'
+                                                                            ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+                                                                            : 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200'
+                                                                        }`}
+                                                                >
+                                                                    {item.refund_status === 'completed' ? '✅ Refund Paid' : '💰 Cashback Info'}
+                                                                </motion.button>
+                                                            ) : (
+                                                                <motion.button
+                                                                    whileHover={{ scale: 1.05 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    onClick={() => handleDelete(item.booking_id, 'event')}
+                                                                    className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-red-100 transition-colors"
+                                                                >
+                                                                    Delete
+                                                                </motion.button>
+                                                            )}
+                                                        </>
                                                     )}
 
                                                     {['confirmed', 'completed'].includes(item.status?.toLowerCase()) && (

@@ -131,6 +131,11 @@ export const bookingService = {
     getReceipt: async (bookingId) => {
         const response = await api.get(`/bookings/read_receipt.php?booking_id=${bookingId}`);
         return response.data;
+    },
+    // Refund
+    processRefund: async (bookingId) => {
+        const response = await api.put('/bookings/process_refund.php', { id: bookingId });
+        return response.data;
     }
 };
 
@@ -143,7 +148,7 @@ export const contactService = {
     getAll: async () => {
         const response = await api.get('/contact/read.php');
         return response.data;
-    }
+    },
 };
 
 export const eventService = {
@@ -179,6 +184,16 @@ export const eventService = {
     deleteBooking: async (bookingId) => {
         const response = await api.post('/events/delete_booking.php', { booking_id: bookingId });
         return response.data;
+    },
+    // Admin - Get all event bookings
+    getAllForAdmin: async () => {
+        const response = await api.get('/events/read_all_admin.php');
+        return response.data;
+    },
+    // Refund
+    processEventRefund: async (bookingId) => {
+        const response = await api.put('/events/process_event_refund.php', { booking_id: bookingId });
+        return response.data;
     }
 };
 
@@ -197,6 +212,22 @@ export const paymentService = {
     verify: async (txRef) => {
         const response = await api.post('/payment/verify.php', { tx_ref: txRef });
         return response.data;
+    }
+};
+
+export const adminService = {
+    getStats: async () => {
+        const response = await api.get('/admin/stats.php');
+        return response.data;
+    },
+    getUsers: async () => {
+        return axios.get(`${API_URL}/admin/users.php`);
+    },
+    createUser: async (userData) => {
+        return axios.post(`${API_URL}/admin/users.php`, userData);
+    },
+    deleteUser: async (id) => {
+        return axios.delete(`${API_URL}/admin/users.php?id=${id}`);
     }
 };
 

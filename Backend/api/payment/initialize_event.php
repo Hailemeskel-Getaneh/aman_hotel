@@ -52,11 +52,11 @@ $currency = 'ETB';
 
 // Handle FREE events (amount = 0)
 if ($amount == 0) {
-    // Auto-confirm free event bookings
+    // Auto-set payment_ref for free events but keep status pending for admin approval
     $tx_ref = 'EVT-FREE-' . $booking_id . '-' . time();
     
-    // Update booking status to confirmed
-    $updateQuery = "UPDATE event_bookings SET status = 'confirmed', payment_ref = :tx_ref WHERE booking_id = :booking_id";
+    // Update booking with payment_ref but keep status as pending for admin approval
+    $updateQuery = "UPDATE event_bookings SET status = 'pending', payment_ref = :tx_ref WHERE booking_id = :booking_id";
     $updateStmt = $db->prepare($updateQuery);
     $updateStmt->bindParam(':tx_ref', $tx_ref);
     $updateStmt->bindParam(':booking_id', $booking_id);
@@ -64,7 +64,7 @@ if ($amount == 0) {
     
     // Return success with redirect to my bookings instead of checkout
     echo json_encode([
-        'message' => 'Free Event Booking Confirmed',
+        'message' => 'Free Event Booking Pending Admin Approval',
         'checkout_url' => $chapaConfig['return_url'] . '?free=true&booking_id=' . $booking_id,
         'tx_ref' => $tx_ref,
         'is_free' => true
