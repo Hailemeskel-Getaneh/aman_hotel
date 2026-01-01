@@ -6,6 +6,7 @@ import Footer from "./components/Footer.jsx";
 
 import Home from "./pages/Home.jsx";
 import Rooms from "./pages/Rooms.jsx";
+import RoomDetails from "./pages/RoomDetails.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import PaymentPage from "./pages/Payment.jsx";
@@ -40,6 +41,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/rooms" element={<Rooms />} />
+          <Route path="/rooms/:id" element={<RoomDetails />} />
 
           <Route path="/booking" element={<Booking />} />
           <Route path="/my-bookings" element={<MyBookings />} />

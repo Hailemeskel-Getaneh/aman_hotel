@@ -146,6 +146,13 @@ export default function Home() {
     }
   };
 
+  const handleClearDates = () => {
+    setCheckIn('');
+    setCheckOut('');
+    setDateFilterActive(false);
+    fetchRooms(false);
+  };
+
 
   return (
     <main className="bg-background min-h-screen">
